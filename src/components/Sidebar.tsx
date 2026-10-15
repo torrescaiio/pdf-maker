@@ -17,10 +17,15 @@ import {
   Info,
   Smartphone,
   Monitor,
+  Camera,
+  Trash2,
+  Plus,
+  RotateCcw,
 } from 'lucide-react';
 import type { EventData, ThemeConfig, SlideImages, TypographyPreset, LayoutFormat } from '../types.ts';
 import {
   defaultThemePresets,
+  defaultImages,
   typographyStyles,
   curatedGalleryPresets,
   eventPresets,
@@ -59,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiToast, setAiToast] = useState<string | null>(null);
 
-  // Helper for image upload to base64
+  // Helper for image upload to base64 from computer
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
     key: keyof SlideImages
@@ -70,10 +75,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
       reader.onload = () => {
         if (typeof reader.result === 'string') {
           setImages((prev) => ({ ...prev, [key]: reader.result as string }));
+          showToast(`Imagem carregada do computador com sucesso!`);
         }
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleRemoveImage = (key: keyof SlideImages) => {
+    setImages((prev) => ({ ...prev, [key]: '' }));
+    showToast(`Imagem removida!`);
+  };
+
+  const handleResetImage = (key: keyof SlideImages) => {
+    setImages((prev) => ({ ...prev, [key]: defaultImages[key] }));
+    showToast(`Imagem restaurada ao padrão!`);
+  };
+
+  const handleAddSponsorLogos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setImages((prev) => ({
+            ...prev,
+            sponsorLogos: [...(prev.sponsorLogos || []), reader.result as string],
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    showToast(`${files.length} logomarca(s) de patrocinador adicionada(s)!`);
+  };
+
+  const handleRemoveSponsorLogo = (idx: number) => {
+    setImages((prev) => ({
+      ...prev,
+      sponsorLogos: (prev.sponsorLogos || []).filter((_, i) => i !== idx),
+    }));
+    showToast(`Logomarca de patrocinador removida!`);
   };
 
   const handleApplyPreset = (presetKey: string) => {
@@ -319,7 +361,7 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
           }`}
         >
           <ImageIcon className="w-3.5 h-3.5" />
-          <span>Imagens</span>
+          <span>Logos & Fotos</span>
         </button>
 
         <button
@@ -696,26 +738,67 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
           </div>
         )}
 
-        {/* ===================== TAB 3: IMAGENS & MÍDIA ===================== */}
+        {/* ===================== TAB 3: LOGOMARCA & IMAGENS DO COMPUTADOR ===================== */}
         {activeTab === 'midia' && (
           <div className="space-y-6">
-            {/* Logo Upload */}
-            <div className="p-4 rounded-xl bg-neutral-950/60 border border-neutral-800 space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block">
-                Logo do Evento
-              </span>
-              <div className="flex items-center gap-4">
+            {/* Informative Header */}
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
+              <div className="flex items-center gap-2 mb-1">
+                <Camera className="w-4 h-4 text-amber-400" />
+                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  Imagens & Logomarcas do Seu Computador
+                </span>
+              </div>
+              <p className="text-[11px] text-neutral-300 leading-relaxed">
+                Adicione a <strong>logomarca oficial do evento</strong>, troque fotos de capa e lâminas por arquivos do seu computador (PNG, JPG, SVG ou WebP), ou adicione <strong>marcas de patrocinadores</strong>.
+              </p>
+            </div>
+
+            {/* SEÇÃO 1: LOGOMARCA DO EVENTO */}
+            <div className="p-4 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-3.5 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-white">
+                    Logomarca Oficial do Evento
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 font-bold uppercase">
+                    Capa & Lâmina 6
+                  </span>
+                </div>
                 {images.logoUrl && (
-                  <img
-                    src={images.logoUrl}
-                    alt="Logo"
-                    className="w-14 h-14 rounded-xl object-cover border border-neutral-700 shrink-0"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage('logoUrl')}
+                    title="Remover logomarca"
+                    className="text-[10px] text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Remover</span>
+                  </button>
                 )}
-                <div className="flex-1 space-y-2">
-                  <label className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-600 text-xs font-semibold cursor-pointer transition-colors text-white">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload Logo (PNG/JPG)</span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                {/* Logo Preview Box with checkerboard transparency background */}
+                <div className="w-24 h-24 rounded-xl border border-neutral-700 p-2 shrink-0 flex items-center justify-center relative overflow-hidden bg-[radial-gradient(#333_1px,transparent_1px)] [background-size:8px_8px] bg-neutral-900 shadow-inner">
+                  {images.logoUrl ? (
+                    <img
+                      src={images.logoUrl}
+                      alt="Logo do Evento"
+                      className="max-h-full max-w-full object-contain drop-shadow-md"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-neutral-500 text-[10px] text-center">
+                      <Camera className="w-6 h-6 mb-1 text-neutral-600" />
+                      <span>Sem logo</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 w-full space-y-2">
+                  <label className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold text-xs cursor-pointer transition-all shadow-md active:scale-[0.99]">
+                    <Upload className="w-4 h-4 stroke-[2.5]" />
+                    <span>Carregar Logo do Computador</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -723,96 +806,337 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
                       className="hidden"
                     />
                   </label>
-                  <p className="text-[11px] text-neutral-500">
-                    Formatos recomendados: PNG transparente ou SVG
-                  </p>
+                  <div className="flex items-center justify-between text-[11px] text-neutral-400 px-1">
+                    <span>Recomendado: PNG transparente ou SVG</span>
+                    {images.logoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => handleResetImage('logoUrl')}
+                        className="text-[10px] text-neutral-400 hover:text-neutral-200 underline"
+                      >
+                        Padrão
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Imagens das Lâminas */}
-            <div className="space-y-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block">
-                Fotos de Fundo & Lâminas
-              </span>
+            {/* SEÇÃO 2: LOGOMARCAS DE PATROCINADORES / APOIADORES */}
+            <div className="p-4 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-3.5 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-white block">
+                    Logomarcas de Patrocinadores & Parceiros
+                  </span>
+                  <span className="text-[10px] text-neutral-400">
+                    Aparecem no fechamento comercial e proposta
+                  </span>
+                </div>
+                <label className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-600 text-xs font-semibold text-white cursor-pointer transition-colors shadow-sm">
+                  <Plus className="w-3.5 h-3.5 text-amber-400" />
+                  <span>+ Adicionar Logos (PC)</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleAddSponsorLogos}
+                    className="hidden"
+                  />
+                </label>
+              </div>
 
-              {/* Lâmina 1 Capa */}
-              <div className="p-3.5 rounded-xl bg-neutral-950/40 border border-neutral-800 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+              {images.sponsorLogos && images.sponsorLogos.length > 0 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 pt-1">
+                  {images.sponsorLogos.map((sLogo, idx) => (
+                    <div
+                      key={idx}
+                      className="group/item relative h-16 rounded-lg border border-neutral-700 bg-neutral-900/90 p-1.5 flex items-center justify-center transition-all hover:border-amber-400"
+                    >
+                      <img
+                        src={sLogo}
+                        alt={`Patrocinador ${idx + 1}`}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSponsorLogo(idx)}
+                        title="Remover logotipo"
+                        className="absolute -top-1.5 -right-1.5 p-1 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-md transition-transform hover:scale-110"
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg border border-dashed border-neutral-800 text-center text-[11px] text-neutral-500">
+                  Nenhuma logomarca de patrocinador adicionada ainda. Clique no botão acima para selecionar do computador.
+                </div>
+              )}
+            </div>
+
+            {/* SEÇÃO 3: FOTOS E IMAGENS DAS 6 LÂMINAS */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-300 block">
+                  Fotos das Lâminas (Upload do PC)
+                </span>
+                <span className="text-[10px] text-neutral-400 font-mono">
+                  6 Lâminas Disponíveis
+                </span>
+              </div>
+
+              {/* Slot 1: Lâmina 1 Capa Hero */}
+              <div className="p-3 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-center justify-between gap-3 hover:border-neutral-700 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
                   <img
                     src={images.slide1Cover}
                     alt="Capa"
-                    className="w-14 h-10 object-cover rounded-lg border border-neutral-700"
+                    className="w-16 h-11 object-cover rounded-lg border border-neutral-700 shrink-0 shadow-sm"
                   />
-                  <div>
-                    <div className="text-xs font-bold text-white">Lâmina 1: Foto de Capa</div>
-                    <div className="text-[10px] text-neutral-400">Hero background principal</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-white truncate">Lâmina 1: Foto Principal de Capa</div>
+                    <div className="text-[10px] text-neutral-400 truncate">Hero background cinematográfico</div>
                   </div>
                 </div>
-                <label className="p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs cursor-pointer border border-neutral-700 text-neutral-200">
-                  <Upload className="w-3.5 h-3.5" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, 'slide1Cover')}
-                    className="hidden"
-                  />
-                </label>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <label className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 hover:text-white cursor-pointer transition-colors">
+                    <Upload className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Upload PC</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'slide1Cover')}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleResetImage('slide1Cover')}
+                    title="Restaurar padrão"
+                    className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
-              {/* Lâmina 2 Conceito */}
-              <div className="p-3.5 rounded-xl bg-neutral-950/40 border border-neutral-800 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+              {/* Slot 2: Lâmina 2 Conceito */}
+              <div className="p-3 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-center justify-between gap-3 hover:border-neutral-700 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
                   <img
                     src={images.slide2Concept}
                     alt="Conceito"
-                    className="w-14 h-10 object-cover rounded-lg border border-neutral-700"
+                    className="w-16 h-11 object-cover rounded-lg border border-neutral-700 shrink-0 shadow-sm"
                   />
-                  <div>
-                    <div className="text-xs font-bold text-white">Lâmina 2: Imagem Conceito</div>
-                    <div className="text-[10px] text-neutral-400">Card lifestyle experiência</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-white truncate">Lâmina 2: Imagem do Conceito</div>
+                    <div className="text-[10px] text-neutral-400 truncate">Card experiência 360° / lifestyle</div>
                   </div>
                 </div>
-                <label className="p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs cursor-pointer border border-neutral-700 text-neutral-200">
-                  <Upload className="w-3.5 h-3.5" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, 'slide2Concept')}
-                    className="hidden"
-                  />
-                </label>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <label className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 hover:text-white cursor-pointer transition-colors">
+                    <Upload className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Upload PC</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'slide2Concept')}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleResetImage('slide2Concept')}
+                    title="Restaurar padrão"
+                    className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
-              {/* Lâmina 4 Atrações */}
-              <div className="p-3.5 rounded-xl bg-neutral-950/40 border border-neutral-800 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+              {/* Slot 3: Lâmina 3 Audiência */}
+              <div className="p-3 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-center justify-between gap-3 hover:border-neutral-700 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
                   <img
-                    src={images.slide4Attraction1}
-                    alt="Atração"
-                    className="w-14 h-10 object-cover rounded-lg border border-neutral-700"
+                    src={images.slide3Audience}
+                    alt="Público"
+                    className="w-16 h-11 object-cover rounded-lg border border-neutral-700 shrink-0 shadow-sm"
                   />
-                  <div>
-                    <div className="text-xs font-bold text-white">Lâmina 4: Card de Atração 1</div>
-                    <div className="text-[10px] text-neutral-400">Foto palco/show/keynote</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-white truncate">Lâmina 3: Fundo de Público & Métricas</div>
+                    <div className="text-[10px] text-neutral-400 truncate">Atmosfera de multidão / audiência</div>
                   </div>
                 </div>
-                <label className="p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs cursor-pointer border border-neutral-700 text-neutral-200">
-                  <Upload className="w-3.5 h-3.5" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, 'slide4Attraction1')}
-                    className="hidden"
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <label className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 hover:text-white cursor-pointer transition-colors">
+                    <Upload className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Upload PC</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'slide3Audience')}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleResetImage('slide3Audience')}
+                    title="Restaurar padrão"
+                    className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Slot 4: Lâmina 4 Atração 1 */}
+              <div className="p-3 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-center justify-between gap-3 hover:border-neutral-700 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={images.slide4Attraction1}
+                    alt="Atração 1"
+                    className="w-16 h-11 object-cover rounded-lg border border-neutral-700 shrink-0 shadow-sm"
                   />
-                </label>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-white truncate">Lâmina 4: Card Atração 1</div>
+                    <div className="text-[10px] text-neutral-400 truncate">Palco Principal / Headliner / Keynote</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <label className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 hover:text-white cursor-pointer transition-colors">
+                    <Upload className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Upload PC</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'slide4Attraction1')}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleResetImage('slide4Attraction1')}
+                    title="Restaurar padrão"
+                    className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Slot 5: Lâmina 4 Atração 2 */}
+              <div className="p-3 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-center justify-between gap-3 hover:border-neutral-700 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={images.slide4Attraction2}
+                    alt="Atração 2"
+                    className="w-16 h-11 object-cover rounded-lg border border-neutral-700 shrink-0 shadow-sm"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-white truncate">Lâmina 4: Card Atração 2</div>
+                    <div className="text-[10px] text-neutral-400 truncate">Gastronomia / Espaço VIP / Lounge</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <label className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 hover:text-white cursor-pointer transition-colors">
+                    <Upload className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Upload PC</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'slide4Attraction2')}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleResetImage('slide4Attraction2')}
+                    title="Restaurar padrão"
+                    className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Slot 6: Lâmina 4 Atração 3 */}
+              <div className="p-3 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-center justify-between gap-3 hover:border-neutral-700 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={images.slide4Attraction3}
+                    alt="Atração 3"
+                    className="w-16 h-11 object-cover rounded-lg border border-neutral-700 shrink-0 shadow-sm"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-white truncate">Lâmina 4: Card Atração 3</div>
+                    <div className="text-[10px] text-neutral-400 truncate">Ativações de Marca / Networking</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <label className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 hover:text-white cursor-pointer transition-colors">
+                    <Upload className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Upload PC</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'slide4Attraction3')}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleResetImage('slide4Attraction3')}
+                    title="Restaurar padrão"
+                    className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Slot 7: Lâmina 6 Encerramento */}
+              <div className="p-3 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-center justify-between gap-3 hover:border-neutral-700 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={images.slide6Closing}
+                    alt="Encerramento"
+                    className="w-16 h-11 object-cover rounded-lg border border-neutral-700 shrink-0 shadow-sm"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-white truncate">Lâmina 6: Foto de Fechamento</div>
+                    <div className="text-[10px] text-neutral-400 truncate">Fundo da lâmina comercial de contato</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <label className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 hover:text-white cursor-pointer transition-colors">
+                    <Upload className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Upload PC</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'slide6Closing')}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleResetImage('slide6Closing')}
+                    title="Restaurar padrão"
+                    className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Galeria Curada Unsplash */}
+            {/* SEÇÃO 4: GALERIA CURADA UNSPLASH */}
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block mb-2">
-                Galeria Curada de Alta Resolução (1-Clique)
+                Ou escolha da Galeria Curada de Alta Resolução (1-Clique)
               </span>
               <div className="space-y-3">
                 {curatedGalleryPresets.map((cat, cIdx) => (

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Users, TrendingUp, Calendar, CreditCard, Radio, Award, BarChart3 } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Users, TrendingUp, Calendar, CreditCard, Radio, Award, BarChart3, Camera } from 'lucide-react';
 import type { EventData, ThemeConfig, SlideImages, LayoutFormat } from '../../types.ts';
 
 interface SlideProps {
@@ -8,20 +8,37 @@ interface SlideProps {
   images: SlideImages;
   format?: LayoutFormat;
   onUpdateText?: (field: keyof EventData, value: string) => void;
+  onUpdateImage?: (key: keyof SlideImages, value: string) => void;
 }
 
 export const Slide3Audience: React.FC<SlideProps> = ({
   data,
   theme,
+  images,
   format = 'widescreen',
   onUpdateText,
+  onUpdateImage,
 }) => {
   const isMobile = format === 'mobile';
   const isA4 = format === 'a4Portrait';
+  const bgInputRef = useRef<HTMLInputElement>(null);
 
   const handleBlur = (field: keyof EventData) => (e: React.FocusEvent<HTMLElement>) => {
     if (onUpdateText) {
       onUpdateText(field, e.currentTarget.innerText.trim());
+    }
+  };
+
+  const handleBgFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onUpdateImage) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          onUpdateImage('slide3Audience', reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -33,10 +50,22 @@ export const Slide3Audience: React.FC<SlideProps> = ({
         isMobile ? 'p-5 sm:p-6' : isA4 ? 'p-8 sm:p-10' : 'p-6 sm:p-8 md:p-9 lg:p-10'
       } select-text text-white shadow-2xl transition-all`}
       style={{
-        background: theme.bgGradient,
+        backgroundColor: theme.bgColor,
+        backgroundImage: images.slide3Audience
+          ? `linear-gradient(135deg, rgba(9, 9, 11, 0.94) 0%, rgba(15, 15, 20, 0.90) 100%), url('${images.slide3Audience}')`
+          : theme.bgGradient,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         fontFamily: theme.fontFamilyBody,
       }}
     >
+      <input
+        type="file"
+        ref={bgInputRef}
+        accept="image/*"
+        onChange={handleBgFileChange}
+        className="hidden"
+      />
       {/* Background glow */}
       <div
         className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[35vw] h-[35vw] rounded-full blur-[140px] opacity-15 pointer-events-none"

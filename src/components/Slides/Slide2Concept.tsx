@@ -1,5 +1,5 @@
-import React from 'react';
-import { Sparkles, Flame, Users, Quote, Compass } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Sparkles, Flame, Users, Quote, Compass, Camera, Upload } from 'lucide-react';
 import type { EventData, ThemeConfig, SlideImages, LayoutFormat } from '../../types.ts';
 
 interface SlideProps {
@@ -9,6 +9,7 @@ interface SlideProps {
   format?: LayoutFormat;
   onUpdateText?: (field: keyof EventData, value: string) => void;
   onUpdatePillar?: (index: number, field: 'title' | 'description', value: string) => void;
+  onUpdateImage?: (key: keyof SlideImages, value: string) => void;
 }
 
 export const Slide2Concept: React.FC<SlideProps> = ({
@@ -18,9 +19,24 @@ export const Slide2Concept: React.FC<SlideProps> = ({
   format = 'widescreen',
   onUpdateText,
   onUpdatePillar,
+  onUpdateImage,
 }) => {
   const isMobile = format === 'mobile';
   const isA4 = format === 'a4Portrait';
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onUpdateImage) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          onUpdateImage('slide2Concept', reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleBlur = (field: keyof EventData) => (e: React.FocusEvent<HTMLElement>) => {
     if (onUpdateText) {
@@ -97,13 +113,22 @@ export const Slide2Concept: React.FC<SlideProps> = ({
         </div>
       </div>
 
+      {/* Hidden file input for direct computer upload */}
+      <input
+        type="file"
+        ref={imageInputRef}
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
       {/* Main Content Area */}
       {isMobile ? (
         /* Mobile Vertical Stack: Image on top (approx 35-40%), text below */
         <div className="relative z-10 flex-1 flex flex-col justify-between py-2 space-y-2.5">
           {/* Top Image Card: ~40% of height */}
           <div
-            className="relative rounded-xl overflow-hidden border shadow-lg h-44 sm:h-48 w-full shrink-0"
+            className="group relative rounded-xl overflow-hidden border shadow-lg h-44 sm:h-48 w-full shrink-0"
             style={{ borderColor: theme.cardBorder }}
           >
             <img
@@ -112,6 +137,18 @@ export const Slide2Concept: React.FC<SlideProps> = ({
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+            
+            {/* Direct upload overlay button on hover */}
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              title="Trocar imagem do seu computador"
+              className="no-print absolute top-2 right-2 flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-black/80 hover:bg-black border border-white/20 hover:border-amber-400 text-[10px] font-bold text-white shadow-xl transition-all cursor-pointer"
+            >
+              <Camera className="w-3 h-3 text-amber-400" />
+              <span>Trocar Foto (PC)</span>
+            </button>
+
             <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between">
               <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur-md border border-white/20 text-white">
                 Experiência 360°
@@ -272,6 +309,18 @@ export const Slide2Concept: React.FC<SlideProps> = ({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                
+                {/* Direct upload overlay button on hover */}
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  title="Trocar imagem do seu computador"
+                  className="no-print absolute top-2 right-2 flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-black/80 hover:bg-black border border-white/20 hover:border-amber-400 text-[10px] font-bold text-white shadow-xl transition-all cursor-pointer opacity-0 group-hover:opacity-100"
+                >
+                  <Camera className="w-3 h-3 text-amber-400" />
+                  <span>Trocar Foto (PC)</span>
+                </button>
+
                 <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between">
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur-md border border-white/20 text-white">
                     Experiência 360°

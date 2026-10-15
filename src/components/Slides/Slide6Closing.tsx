@@ -1,5 +1,5 @@
-import React from 'react';
-import { Mail, Phone, Instagram, Globe, ShieldCheck, Sparkles, Handshake, CheckCircle } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Mail, Phone, Instagram, Globe, ShieldCheck, Sparkles, Handshake, CheckCircle, Camera, Upload, Plus, Trash2 } from 'lucide-react';
 import type { EventData, ThemeConfig, SlideImages, LayoutFormat } from '../../types.ts';
 
 interface SlideProps {
@@ -8,6 +8,9 @@ interface SlideProps {
   images: SlideImages;
   format?: LayoutFormat;
   onUpdateText?: (field: keyof EventData, value: string) => void;
+  onUpdateImage?: (key: keyof SlideImages, value: string) => void;
+  onAddSponsorLogo?: (logoUrl: string) => void;
+  onRemoveSponsorLogo?: (index: number) => void;
 }
 
 export const Slide6Closing: React.FC<SlideProps> = ({
@@ -16,14 +19,47 @@ export const Slide6Closing: React.FC<SlideProps> = ({
   images,
   format = 'widescreen',
   onUpdateText,
+  onUpdateImage,
+  onAddSponsorLogo,
+  onRemoveSponsorLogo,
 }) => {
   const isMobile = format === 'mobile';
   const isA4 = format === 'a4Portrait';
+  const bgInputRef = useRef<HTMLInputElement>(null);
+  const sponsorInputRef = useRef<HTMLInputElement>(null);
 
   const handleBlur = (field: keyof EventData) => (e: React.FocusEvent<HTMLElement>) => {
     if (onUpdateText) {
       onUpdateText(field, e.currentTarget.innerText.trim());
     }
+  };
+
+  const handleBgFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onUpdateImage) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          onUpdateImage('slide6Closing', reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSponsorLogosUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !onAddSponsorLogo) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          onAddSponsorLogo(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const aspectClass = isMobile ? 'aspect-[9/16]' : isA4 ? 'aspect-[210/297]' : 'aspect-[16/9]';
@@ -41,6 +77,23 @@ export const Slide6Closing: React.FC<SlideProps> = ({
         fontFamily: theme.fontFamilyBody,
       }}
     >
+      {/* Hidden file inputs */}
+      <input
+        type="file"
+        ref={bgInputRef}
+        accept="image/*"
+        onChange={handleBgFileChange}
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={sponsorInputRef}
+        multiple
+        accept="image/*"
+        onChange={handleSponsorLogosUpload}
+        className="hidden"
+      />
+
       {/* Background glow effects */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[45vw] h-[45vw] rounded-full blur-[160px] opacity-20 pointer-events-none"
@@ -81,9 +134,20 @@ export const Slide6Closing: React.FC<SlideProps> = ({
             {data.closingSubtitle}
           </p>
         </div>
-        <div className="text-right text-[10px] sm:text-[11px] font-mono text-neutral-400">
-          <span>{data.name}</span>
-          <div className="text-neutral-500">LÂMINA 06 / 06</div>
+        <div className="flex flex-col items-end gap-1.5">
+          <button
+            type="button"
+            onClick={() => bgInputRef.current?.click()}
+            title="Trocar imagem de fundo do slide do seu computador"
+            className="no-print flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 hover:border-amber-400 text-[11px] font-semibold text-neutral-200 hover:text-white transition-all shadow-md cursor-pointer"
+          >
+            <Camera className="w-3 h-3 text-amber-400" />
+            <span>Trocar Fundo (PC)</span>
+          </button>
+          <div className="text-right text-[10px] sm:text-[11px] font-mono text-neutral-400">
+            <span>{data.name}</span>
+            <div className="text-neutral-500">LÂMINA 06 / 06</div>
+          </div>
         </div>
       </div>
 
@@ -91,7 +155,7 @@ export const Slide6Closing: React.FC<SlideProps> = ({
       <div className={`relative z-10 ${
         isMobile ? 'flex flex-col gap-2.5 my-auto' : 'grid grid-cols-1 md:grid-cols-12 gap-5 my-auto items-center'
       }`}>
-        {/* Left Column: CTA message + Brand Logo */}
+        {/* Left Column: CTA message + Brand Logo & Sponsor Logos */}
         <div className={`${isMobile ? 'w-full' : 'md:col-span-6'} space-y-2.5`}>
           <div
             className="p-3.5 sm:p-4 rounded-xl border backdrop-blur-md shadow-xl"
@@ -126,6 +190,54 @@ export const Slide6Closing: React.FC<SlideProps> = ({
               </span>
               <span>Edição Limitada</span>
             </div>
+          </div>
+
+          {/* Sponsor & Partner Logos Strip */}
+          <div className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-2 backdrop-blur-md">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                Marcas & Patrocinadores Confirmados
+              </span>
+              <button
+                type="button"
+                onClick={() => sponsorInputRef.current?.click()}
+                title="Adicionar logomarcas de patrocinadores do seu computador"
+                className="no-print flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/30 text-[10px] font-bold cursor-pointer transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Logo (PC)</span>
+              </button>
+            </div>
+
+            {images.sponsorLogos && images.sponsorLogos.length > 0 ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                {images.sponsorLogos.map((sLogo, sIdx) => (
+                  <div
+                    key={sIdx}
+                    className="group/slogo relative h-9 px-2 py-1 rounded-lg bg-white/5 border border-white/15 flex items-center justify-center transition-all hover:bg-white/10"
+                  >
+                    <img
+                      src={sLogo}
+                      alt="Logo Parceiro"
+                      className="h-full max-w-[70px] object-contain"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => onRemoveSponsorLogo && onRemoveSponsorLogo(sIdx)}
+                      title="Remover logotipo de patrocinador"
+                      className="no-print absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white opacity-0 group-hover/slogo:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-2.5 h-2.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px] text-neutral-400 italic">
+                Nenhum logotipo de patrocinador adicionado ainda. Clique em "+ Logo (PC)" para carregar do seu computador.
+              </p>
+            )}
           </div>
 
           {/* Confidentiality seal card */}

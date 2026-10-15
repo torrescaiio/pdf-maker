@@ -1,5 +1,5 @@
-import React from 'react';
-import { Layers, Music, Utensils, Sparkles, CheckCircle2 } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Layers, Music, Utensils, Sparkles, CheckCircle2, Camera } from 'lucide-react';
 import type { EventData, ThemeConfig, SlideImages, LayoutFormat } from '../../types.ts';
 
 interface SlideProps {
@@ -9,6 +9,7 @@ interface SlideProps {
   format?: LayoutFormat;
   onUpdateText?: (field: keyof EventData, value: string) => void;
   onUpdateAttraction?: (index: number, field: 'title' | 'description' | 'stats' | 'tag', value: string) => void;
+  onUpdateImage?: (key: keyof SlideImages, value: string) => void;
 }
 
 export const Slide4Attractions: React.FC<SlideProps> = ({
@@ -18,13 +19,34 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
   format = 'widescreen',
   onUpdateText,
   onUpdateAttraction,
+  onUpdateImage,
 }) => {
   const isMobile = format === 'mobile';
   const isA4 = format === 'a4Portrait';
+  const fileInputRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+  ];
 
   const handleBlur = (field: keyof EventData) => (e: React.FocusEvent<HTMLElement>) => {
     if (onUpdateText) {
       onUpdateText(field, e.currentTarget.innerText.trim());
+    }
+  };
+
+  const handleAttractionFileChange = (idx: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onUpdateImage) {
+      const keys: (keyof SlideImages)[] = ['slide4Attraction1', 'slide4Attraction2', 'slide4Attraction3'];
+      const targetKey = keys[idx];
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          onUpdateImage(targetKey, reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -118,15 +140,33 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
             }}
           >
             {/* Attraction Image */}
-            <div className={`relative overflow-hidden shrink-0 ${
+            <div className={`relative overflow-hidden shrink-0 group/img ${
               isMobile ? 'w-24 sm:w-28' : 'h-28 sm:h-32 md:h-36 w-full'
             }`}>
+              <input
+                type="file"
+                ref={fileInputRefs[idx]}
+                accept="image/*"
+                onChange={handleAttractionFileChange(idx)}
+                className="hidden"
+              />
               <img
                 src={getAttractionImage(idx)}
                 alt={attraction.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
+              
+              {/* Direct photo upload button on hover */}
+              <button
+                type="button"
+                onClick={() => fileInputRefs[idx].current?.click()}
+                title="Trocar foto desta atração do seu computador"
+                className="no-print absolute top-1.5 right-1.5 p-1 rounded-md bg-black/80 hover:bg-black border border-white/20 hover:border-amber-400 text-white shadow-lg transition-all cursor-pointer opacity-0 group-hover/img:opacity-100"
+              >
+                <Camera className="w-3 h-3 text-amber-400" />
+              </button>
+
               <div className="absolute top-1.5 left-1.5">
                 <span
                   contentEditable

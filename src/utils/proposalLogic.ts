@@ -248,6 +248,7 @@ export const defaultImages: SlideImages = {
   slide4Attraction2: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
   slide4Attraction3: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80',
   slide6Closing: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1920&q=85',
+  sponsorLogos: [],
 };
 
 export const curatedGalleryPresets: {
@@ -746,14 +747,18 @@ export function generateSingleFileHtml(
 
   <!-- Lâmina 1 -->
   <section class="slide" style="background-image: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.85) 100%), url('${images.slide1Cover}');">
-    <div>
-      <span class="badge">Proposta de Patrocínio & Media Kit • Confidencial</span>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        ${images.logoUrl ? `<img src="${images.logoUrl}" alt="Logomarca" style="height: ${isMobile ? '44px' : '56px'}; max-width: 140px; object-fit: contain; border-radius: 8px; background: rgba(0,0,0,0.4); padding: 4px; border: 1px solid rgba(255,255,255,0.15);">` : ''}
+        <span class="badge">Proposta de Patrocínio & Media Kit • Confidencial</span>
+      </div>
+      <span style="font-family: monospace; font-size: 0.85rem; color: ${theme.primaryColor}; opacity: 0.9;">2026 OFFICIAL</span>
     </div>
     <div>
       <h1 class="hero-title">${data.name}</h1>
-      <p style="font-size: 1.5vw; margin-top: 1vw; color: ${theme.primaryColor}; font-weight: 600;">${data.subtitle}</p>
+      <p style="font-size: ${isMobile ? '14px' : isA4 ? '18px' : '1.5vw'}; margin-top: 1vw; color: ${theme.primaryColor}; font-weight: 600;">${data.subtitle}</p>
     </div>
-    <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1vw; font-size: 1.1vw;">
+    <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1vw; font-size: ${isMobile ? '11px' : '1.1vw'};">
       <span><strong>Data:</strong> ${data.date}</span>
       <span><strong>Local:</strong> ${data.venue} - ${data.city}</span>
       <span><strong>Edição:</strong> ${data.edition}</span>
@@ -890,23 +895,32 @@ export function generateSingleFileHtml(
   </section>
 
   <!-- Lâmina 6 -->
-  <section class="slide" style="background-image: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 100%), url('${images.slide6Closing}'); text-align: center; justify-content: center; gap: 2vw;">
+  <section class="slide" style="background-image: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 100%), url('${images.slide6Closing}'); text-align: center; justify-content: center; gap: ${isMobile ? '16px' : '2vw'};">
     <div>
+      ${images.logoUrl ? `<img src="${images.logoUrl}" alt="Logomarca" style="height: ${isMobile ? '38px' : '48px'}; object-fit: contain; margin-bottom: 8px;">` : ''}
+      <br>
       <span class="badge">Próximos Passos & Parceria</span>
-      <h2 style="font-family: ${theme.fontFamilyHead}; font-size: 3vw; margin-top: 1vw;">${data.closingTitle}</h2>
-      <p style="font-size: 1.3vw; color: ${theme.primaryColor}; max-width: 800px; margin: 1vw auto;">${data.closingCta}</p>
+      <h2 style="font-family: ${theme.fontFamilyHead}; font-size: ${isMobile ? '22px' : '3vw'}; margin-top: 1vw;">${data.closingTitle}</h2>
+      <p style="font-size: ${isMobile ? '12px' : '1.3vw'}; color: ${theme.primaryColor}; max-width: 800px; margin: 1vw auto;">${data.closingCta}</p>
     </div>
     <div class="card" style="max-width: 700px; margin: 0 auto; width: 100%;">
-      <h3 style="font-size: 1.5vw; color: #fff;">${data.contactName}</h3>
-      <p style="font-size: 1.1vw; color: ${theme.primaryColor};">${data.contactRole}</p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1vw; margin-top: 1vw; font-size: 1vw;">
+      <h3 style="font-size: ${isMobile ? '16px' : '1.5vw'}; color: #fff;">${data.contactName}</h3>
+      <p style="font-size: ${isMobile ? '12px' : '1.1vw'}; color: ${theme.primaryColor};">${data.contactRole}</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: ${isMobile ? '6px' : '1vw'}; margin-top: 1vw; font-size: ${isMobile ? '11px' : '1vw'};">
         <span><strong>WhatsApp:</strong> ${data.contactPhone}</span>
         <span><strong>E-mail:</strong> ${data.contactEmail}</span>
         <span><strong>Instagram:</strong> ${data.contactInstagram}</span>
         <span><strong>Site:</strong> ${data.contactWebsite}</span>
       </div>
-      <p style="margin-top: 1vw; font-size: 0.8vw; color: ${theme.textMuted};">Proposta válida por ${data.proposalValidityDays} dias a partir da data de apresentação.</p>
+      <p style="margin-top: 1vw; font-size: ${isMobile ? '9px' : '0.8vw'}; color: ${theme.textMuted};">Proposta válida por ${data.proposalValidityDays} dias a partir da data de apresentação.</p>
     </div>
+    ${images.sponsorLogos && images.sponsorLogos.length > 0 ? `
+    <div style="margin-top: 1vw;">
+      <span style="font-size: 0.8vw; text-transform: uppercase; letter-spacing: 0.1em; color: ${theme.textMuted}; display: block; margin-bottom: 0.5vw;">Marcas & Patrocinadores Confirmados</span>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 1vw; flex-wrap: wrap;">
+        ${images.sponsorLogos.map((s) => `<img src="${s}" alt="Patrocinador" style="height: ${isMobile ? '24px' : '32px'}; max-width: 90px; object-fit: contain; filter: grayscale(20%); background: rgba(255,255,255,0.06); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">`).join('')}
+      </div>
+    </div>` : ''}
   </section>
 </body>
 </html>`;

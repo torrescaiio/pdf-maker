@@ -106,6 +106,7 @@ export default function App() {
         setEventData={setEventData}
         theme={theme}
         images={images}
+        setImages={setImages}
         format={layoutFormat}
         setFormat={setLayoutFormat}
         zoomLevel={zoomLevel}

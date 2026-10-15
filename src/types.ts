@@ -117,4 +117,5 @@ export interface SlideImages {
   slide4Attraction2: string;
   slide4Attraction3: string;
   slide6Closing: string;
+  sponsorLogos?: string[];
 }
