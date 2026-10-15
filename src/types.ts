@@ -22,6 +22,14 @@ export interface AttractionCard {
   stats: string;
 }
 
+export interface CustomSlideBlock {
+  id: string;
+  title: string;
+  content: string;
+  tag?: string;
+  badge?: string;
+}
+
 export interface EventData {
   name: string;
   subtitle: string;
@@ -39,6 +47,9 @@ export interface EventData {
   manifestoQuote: string;
   manifestoAuthor: string;
   pillars: ExperiencePillar[];
+  showConceptStory?: boolean;
+  showManifesto?: boolean;
+  showPillars?: boolean;
 
   // Lâmina 3: Público & Métricas
   audienceCount: string;
@@ -49,11 +60,22 @@ export interface EventData {
   audienceProfileDescription: string;
   mediaChannels: string[];
 
+  // Freedom / Customization toggles for Slide 3 balloons:
+  showMediaChannels?: boolean; // Can be excluded/deleted or restored
+  showAudienceProfile?: boolean; // Can be excluded/deleted or restored
+  showDemographicsGender?: boolean; // Can be excluded/deleted or restored
+  showMetricAudience?: boolean; // Metric card 1
+  showMetricImpressions?: boolean; // Metric card 2
+  showMetricAge?: boolean; // Metric card 3
+  showMetricPower?: boolean; // Metric card 4
+  customBlocksSlide3?: CustomSlideBlock[]; // User-created balloons on Slide 3
+
   // Lâmina 4: Atrações & Estrutura
   structureTitle: string;
   structureSubtitle: string;
   attractions: AttractionCard[];
   structureMetrics: { value: string; label: string }[];
+  showStructureMetrics?: boolean;
 
   // Lâmina 5: Cotas
   tiersTitle: string;
@@ -71,6 +93,11 @@ export interface EventData {
   contactInstagram: string;
   contactWebsite: string;
   proposalValidityDays: number;
+  showContactCard?: boolean;
+  showContactSocials?: boolean;
+  showClosingSponsors?: boolean;
+  showClosingValidity?: boolean;
+  customBlocksSlide6?: CustomSlideBlock[];
 }
 
 export type TypographyPreset = 'editorial' | 'tech' | 'festival' | 'minimal';

@@ -21,7 +21,7 @@ import {
   RotateCcw,
   Check,
 } from 'lucide-react';
-import type { EventData, ThemeConfig, SlideImages, LayoutFormat } from '../types.ts';
+import type { EventData, ThemeConfig, SlideImages, LayoutFormat, CustomSlideBlock } from '../types.ts';
 import { formatConfigs, defaultImages } from '../utils/proposalLogic.ts';
 import { Slide1Cover } from './Slides/Slide1Cover.tsx';
 import { Slide2Concept } from './Slides/Slide2Concept.tsx';
@@ -132,6 +132,50 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
     }));
   };
 
+  const handleToggleBlock = (field: keyof EventData, show: boolean) => {
+    setEventData((prev) => ({
+      ...prev,
+      [field]: show,
+    }));
+  };
+
+  const handleUpdateMediaChannels = (channels: string[]) => {
+    setEventData((prev) => ({
+      ...prev,
+      mediaChannels: channels,
+    }));
+  };
+
+  const handleUpdateDemographics = (demographics: { label: string; percentage: number }[]) => {
+    setEventData((prev) => ({
+      ...prev,
+      demographicsGender: demographics,
+    }));
+  };
+
+  const handleAddCustomBlockSlide3 = (block: CustomSlideBlock) => {
+    setEventData((prev) => ({
+      ...prev,
+      customBlocksSlide3: [...(prev.customBlocksSlide3 || []), block],
+    }));
+  };
+
+  const handleRemoveCustomBlockSlide3 = (id: string) => {
+    setEventData((prev) => ({
+      ...prev,
+      customBlocksSlide3: (prev.customBlocksSlide3 || []).filter((b) => b.id !== id),
+    }));
+  };
+
+  const handleUpdateCustomBlockSlide3 = (id: string, field: 'title' | 'content', value: string) => {
+    setEventData((prev) => ({
+      ...prev,
+      customBlocksSlide3: (prev.customBlocksSlide3 || []).map((b) =>
+        b.id === id ? { ...b, [field]: value } : b
+      ),
+    }));
+  };
+
   const activeConfig = formatConfigs[format] || formatConfigs.widescreen;
   const containerMaxWidth = Math.round(activeConfig.previewMaxWidth * (zoomLevel / 100));
 
@@ -165,6 +209,12 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
         format={format}
         onUpdateText={handleUpdateText}
         onUpdateImage={handleUpdateImage}
+        onToggleBlock={handleToggleBlock}
+        onUpdateMediaChannels={handleUpdateMediaChannels}
+        onUpdateDemographics={handleUpdateDemographics}
+        onAddCustomBlock={handleAddCustomBlockSlide3}
+        onRemoveCustomBlock={handleRemoveCustomBlockSlide3}
+        onUpdateCustomBlock={handleUpdateCustomBlockSlide3}
       />
     )},
     { id: 4, title: 'Atrações & Estrutura', component: (

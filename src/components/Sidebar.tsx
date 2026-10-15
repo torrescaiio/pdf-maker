@@ -21,8 +21,13 @@ import {
   Trash2,
   Plus,
   RotateCcw,
+  Eye,
+  EyeOff,
+  X,
+  Radio,
+  Award,
 } from 'lucide-react';
-import type { EventData, ThemeConfig, SlideImages, TypographyPreset, LayoutFormat } from '../types.ts';
+import type { EventData, ThemeConfig, SlideImages, TypographyPreset, LayoutFormat, CustomSlideBlock } from '../types.ts';
 import {
   defaultThemePresets,
   defaultImages,
@@ -59,10 +64,89 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setFormat,
   onPrint,
 }) => {
-  const [activeTab, setActiveTab] = useState<'visual' | 'dados' | 'midia' | 'cotas'>('visual');
+  const [activeTab, setActiveTab] = useState<'visual' | 'baloes' | 'dados' | 'midia' | 'cotas'>('visual');
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiToast, setAiToast] = useState<string | null>(null);
+
+  // States for customizing balloons and blocks
+  const [newChannelText, setNewChannelText] = useState('');
+  const [newBlockTitle, setNewBlockTitle] = useState('');
+  const [newBlockContent, setNewBlockContent] = useState('');
+  const [isAddingCustomBlock, setIsAddingCustomBlock] = useState(false);
+
+  const handleToggleBlock = (field: keyof EventData, val?: boolean) => {
+    setEventData((prev) => {
+      const current = prev[field] !== false;
+      const nextVal = typeof val === 'boolean' ? val : !current;
+      return { ...prev, [field]: nextVal };
+    });
+  };
+
+  const handleAddMediaChannel = () => {
+    if (!newChannelText.trim()) return;
+    setEventData((prev) => ({
+      ...prev,
+      mediaChannels: [...(prev.mediaChannels || []), newChannelText.trim()],
+    }));
+    setNewChannelText('');
+    showToast('Canal de mídia adicionado com sucesso!');
+  };
+
+  const handleRemoveMediaChannel = (index: number) => {
+    setEventData((prev) => ({
+      ...prev,
+      mediaChannels: (prev.mediaChannels || []).filter((_, i) => i !== index),
+    }));
+    showToast('Canal de mídia excluído!');
+  };
+
+  const handleAddCustomBlock = () => {
+    if (!newBlockTitle.trim()) return;
+    const newBlock: CustomSlideBlock = {
+      id: 'block_' + Date.now(),
+      title: newBlockTitle.trim(),
+      content: newBlockContent.trim() || 'Conteúdo do novo balão...',
+    };
+    setEventData((prev) => ({
+      ...prev,
+      customBlocksSlide3: [...(prev.customBlocksSlide3 || []), newBlock],
+    }));
+    setNewBlockTitle('');
+    setNewBlockContent('');
+    setIsAddingCustomBlock(false);
+    showToast('Novo balão personalizado criado na Lâmina 3!');
+  };
+
+  const handleRemoveCustomBlock = (id: string) => {
+    setEventData((prev) => ({
+      ...prev,
+      customBlocksSlide3: (prev.customBlocksSlide3 || []).filter((b) => b.id !== id),
+    }));
+    showToast('Balão personalizado removido!');
+  };
+
+  const handleRestoreAllBalloons = () => {
+    setEventData((prev) => ({
+      ...prev,
+      showConceptStory: true,
+      showManifesto: true,
+      showPillars: true,
+      showMediaChannels: true,
+      showAudienceProfile: true,
+      showDemographicsGender: true,
+      showMetricAudience: true,
+      showMetricImpressions: true,
+      showMetricAge: true,
+      showMetricPower: true,
+      showStructureMetrics: true,
+      showContactCard: true,
+      showContactSocials: true,
+      showClosingSponsors: true,
+      showClosingValidity: true,
+    }));
+    showToast('Todos os balões foram restaurados com sucesso!');
+  };
 
   // Helper for image upload to base64 from computer
   const handleImageUpload = (
@@ -327,10 +411,10 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
       </div>
 
       {/* Tabs Bar */}
-      <div className="flex border-b border-neutral-800 bg-neutral-950/30 text-xs font-medium">
+      <div className="flex border-b border-neutral-800 bg-neutral-950/40 text-[11px] font-medium overflow-x-auto scrollbar-none">
         <button
           onClick={() => setActiveTab('visual')}
-          className={`flex-1 py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
+          className={`flex-1 min-w-[64px] py-2.5 px-1.5 flex flex-col sm:flex-row items-center justify-center gap-1 border-b-2 transition-colors ${
             activeTab === 'visual'
               ? 'border-amber-400 text-amber-400 bg-neutral-800/40 font-bold'
               : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -341,32 +425,45 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
         </button>
 
         <button
+          onClick={() => setActiveTab('baloes')}
+          title="Excluir, readicionar e personalizar balões e blocos em qualquer lâmina"
+          className={`flex-1 min-w-[78px] py-2.5 px-1.5 flex flex-col sm:flex-row items-center justify-center gap-1 border-b-2 transition-colors ${
+            activeTab === 'baloes'
+              ? 'border-amber-400 text-amber-400 bg-neutral-800/40 font-bold'
+              : 'border-transparent text-neutral-400 hover:text-neutral-200'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span className="font-semibold text-center leading-tight">Balões</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('dados')}
-          className={`flex-1 py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
+          className={`flex-1 min-w-[64px] py-2.5 px-1.5 flex flex-col sm:flex-row items-center justify-center gap-1 border-b-2 transition-colors ${
             activeTab === 'dados'
               ? 'border-amber-400 text-amber-400 bg-neutral-800/40 font-bold'
               : 'border-transparent text-neutral-400 hover:text-neutral-200'
           }`}
         >
           <FileText className="w-3.5 h-3.5" />
-          <span>Copy & Info</span>
+          <span>Copy</span>
         </button>
 
         <button
           onClick={() => setActiveTab('midia')}
-          className={`flex-1 py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
+          className={`flex-1 min-w-[74px] py-2.5 px-1.5 flex flex-col sm:flex-row items-center justify-center gap-1 border-b-2 transition-colors ${
             activeTab === 'midia'
               ? 'border-amber-400 text-amber-400 bg-neutral-800/40 font-bold'
               : 'border-transparent text-neutral-400 hover:text-neutral-200'
           }`}
         >
           <ImageIcon className="w-3.5 h-3.5" />
-          <span>Logos & Fotos</span>
+          <span>Fotos</span>
         </button>
 
         <button
           onClick={() => setActiveTab('cotas')}
-          className={`flex-1 py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
+          className={`flex-1 min-w-[60px] py-2.5 px-1.5 flex flex-col sm:flex-row items-center justify-center gap-1 border-b-2 transition-colors ${
             activeTab === 'cotas'
               ? 'border-amber-400 text-amber-400 bg-neutral-800/40 font-bold'
               : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -511,6 +608,508 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
                     </button>
                   )
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===================== TAB: PERSONALIZAR BALÕES & BLOCOS ===================== */}
+        {activeTab === 'baloes' && (
+          <div className="space-y-6">
+            {/* Header / Intro */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-amber-950/40 via-neutral-900 to-neutral-950 border border-amber-500/30 shadow-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    Liberdade de Balões & Blocos
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRestoreAllBalloons}
+                  title="Restaurar todos os balões originais em todas as lâminas"
+                  className="px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-amber-300 border border-amber-400/30 text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Restaurar Todos</span>
+                </button>
+              </div>
+              <p className="text-[11px] text-neutral-300 leading-relaxed">
+                Você tem <strong>liberdade total</strong> para excluir qualquer balão que não for utilizar (como o de canais de mídia na Lâmina 3), readicioná-los a qualquer momento e até criar novos balões personalizados!
+              </p>
+            </div>
+
+            {/* ================= LÂMINA 3: PÚBLICO & MÉTRICAS ================= */}
+            <div className="p-4 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-4 shadow-lg">
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
+                    Lâmina 03: Público & Métricas
+                  </span>
+                  <span className="text-[10px] text-neutral-400">
+                    Gerencie os balões de canais, perfil e grandes números
+                  </span>
+                </div>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-300 font-mono font-bold">
+                  Página 3
+                </span>
+              </div>
+
+              {/* 1. Balão: Canais de Mídia & Transmissão (User's specific request!) */}
+              <div
+                className={`p-3.5 rounded-xl border transition-all ${
+                  eventData.showMediaChannels !== false
+                    ? 'border-amber-400/40 bg-neutral-900/80'
+                    : 'border-dashed border-red-500/30 bg-red-950/10 opacity-80'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <Radio className="w-4 h-4 text-secondaryColor" style={{ color: theme.secondaryColor }} />
+                    <span className="text-xs font-bold text-white">
+                      Balão: Canais de Mídia & Transmissão
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showMediaChannels')}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      eventData.showMediaChannels !== false
+                        ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40'
+                        : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                    }`}
+                  >
+                    {eventData.showMediaChannels !== false ? (
+                      <>
+                        <Trash2 className="w-3 h-3" />
+                        <span>Excluir Balão</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-3 h-3" />
+                        <span>Readicionar Balão</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <p className="text-[10px] text-neutral-400 leading-tight mb-3">
+                  {eventData.showMediaChannels !== false
+                    ? 'Este balão está visível na Lâmina 3. Ao excluí-lo, o balão ao lado se expande automaticamente para ocupar a largura total.'
+                    : 'Balão atualmente excluído/oculto. A Lâmina 3 adaptou a diagramação perfeitamente sem ele.'}
+                </p>
+
+                {/* Channels manager inside when visible */}
+                {eventData.showMediaChannels !== false && (
+                  <div className="space-y-2 pt-2 border-t border-white/10">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
+                      Itens de Canais ({eventData.mediaChannels?.length || 0})
+                    </span>
+
+                    <div className="space-y-1.5">
+                      {(eventData.mediaChannels || []).map((ch, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 p-1.5 rounded-lg bg-black/40 border border-neutral-800"
+                        >
+                          <input
+                            type="text"
+                            value={ch}
+                            onChange={(e) => {
+                              const next = [...eventData.mediaChannels];
+                              next[idx] = e.target.value;
+                              setEventData((prev) => ({ ...prev, mediaChannels: next }));
+                            }}
+                            className="flex-1 bg-transparent text-xs text-neutral-200 outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMediaChannel(idx)}
+                            title="Excluir este canal"
+                            className="p-1 text-neutral-500 hover:text-red-400 transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add new channel */}
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <input
+                        type="text"
+                        placeholder="Nome do novo canal (ex: TikTok Oficial)"
+                        value={newChannelText}
+                        onChange={(e) => setNewChannelText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddMediaChannel();
+                          }
+                        }}
+                        className="flex-1 bg-neutral-900 border border-neutral-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddMediaChannel}
+                        className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Adicionar</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. Balão: Perfil do Consumidor */}
+              <div
+                className={`p-3.5 rounded-xl border transition-all ${
+                  eventData.showAudienceProfile !== false
+                    ? 'border-amber-400/40 bg-neutral-900/80'
+                    : 'border-dashed border-red-500/30 bg-red-950/10 opacity-80'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs font-bold text-white">
+                      Balão: Perfil do Consumidor & Demografia
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showAudienceProfile')}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      eventData.showAudienceProfile !== false
+                        ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40'
+                        : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                    }`}
+                  >
+                    {eventData.showAudienceProfile !== false ? (
+                      <>
+                        <Trash2 className="w-3 h-3" />
+                        <span>Excluir Balão</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-3 h-3" />
+                        <span>Readicionar Balão</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <p className="text-[10px] text-neutral-400 leading-tight mb-2">
+                  Exibe a persona do público qualificado e as barras de porcentagem demográfica.
+                </p>
+
+                {eventData.showAudienceProfile !== false && (
+                  <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+                    <span className="text-neutral-400 font-medium">Exibir Barras Demográficas</span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleBlock('showDemographicsGender')}
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors cursor-pointer ${
+                        eventData.showDemographicsGender !== false
+                          ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                          : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                      }`}
+                    >
+                      {eventData.showDemographicsGender !== false ? 'Visível' : 'Oculto'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Balões de Grandes Números (Métricas) */}
+              <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/60 space-y-2.5">
+                <span className="text-xs font-bold text-white block">
+                  Balões de Métricas Numéricas
+                </span>
+                <p className="text-[10px] text-neutral-400">
+                  Desmarque qualquer número que não queira exibir. A diagramação se reorganiza automaticamente.
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {/* Público */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showMetricAudience')}
+                    className={`p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      eventData.showMetricAudience !== false
+                        ? 'border-amber-400/40 bg-neutral-800 text-white'
+                        : 'border-neutral-800 bg-neutral-950/40 text-neutral-500'
+                    }`}
+                  >
+                    <span className="font-medium text-[11px]">1. Público</span>
+                    {eventData.showMetricAudience !== false ? (
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5 text-neutral-600" />
+                    )}
+                  </button>
+
+                  {/* Alcance Digital */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showMetricImpressions')}
+                    className={`p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      eventData.showMetricImpressions !== false
+                        ? 'border-amber-400/40 bg-neutral-800 text-white'
+                        : 'border-neutral-800 bg-neutral-950/40 text-neutral-500'
+                    }`}
+                  >
+                    <span className="font-medium text-[11px]">2. Alcance Digital</span>
+                    {eventData.showMetricImpressions !== false ? (
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5 text-neutral-600" />
+                    )}
+                  </button>
+
+                  {/* Faixa Etária */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showMetricAge')}
+                    className={`p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      eventData.showMetricAge !== false
+                        ? 'border-amber-400/40 bg-neutral-800 text-white'
+                        : 'border-neutral-800 bg-neutral-950/40 text-neutral-500'
+                    }`}
+                  >
+                    <span className="font-medium text-[11px]">3. Faixa Etária</span>
+                    {eventData.showMetricAge !== false ? (
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5 text-neutral-600" />
+                    )}
+                  </button>
+
+                  {/* Poder Aquisitivo */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showMetricPower')}
+                    className={`p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      eventData.showMetricPower !== false
+                        ? 'border-amber-400/40 bg-neutral-800 text-white'
+                        : 'border-neutral-800 bg-neutral-950/40 text-neutral-500'
+                    }`}
+                  >
+                    <span className="font-medium text-[11px]">4. Poder Aquisitivo</span>
+                    {eventData.showMetricPower !== false ? (
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5 text-neutral-600" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* 4. Balões Customizados Criados pelo Usuário */}
+              <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      Balões Personalizados da Lâmina 3
+                    </span>
+                    <span className="text-[10px] text-neutral-400">
+                      Crie balões adicionais com títulos e informações livres
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingCustomBlock((prev) => !prev)}
+                    className="px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>{isAddingCustomBlock ? 'Fechar' : 'Novo Balão'}</span>
+                  </button>
+                </div>
+
+                {/* Form to create new balloon */}
+                {isAddingCustomBlock && (
+                  <div className="p-3 rounded-lg bg-black/60 border border-amber-400/30 space-y-2.5">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block mb-1">
+                        Título do Balão
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Hábitos de Consumo ou Presença Regional"
+                        value={newBlockTitle}
+                        onChange={(e) => setNewBlockTitle(e.target.value)}
+                        className="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block mb-1">
+                        Conteúdo do Balão
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Escreva as informações deste novo balão..."
+                        value={newBlockContent}
+                        onChange={(e) => setNewBlockContent(e.target.value)}
+                        className="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-xs text-neutral-200"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddCustomBlock}
+                      className="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Inserir Balão na Lâmina 3</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* List of custom balloons */}
+                {eventData.customBlocksSlide3 && eventData.customBlocksSlide3.length > 0 ? (
+                  <div className="space-y-2">
+                    {eventData.customBlocksSlide3.map((block) => (
+                      <div
+                        key={block.id}
+                        className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800 flex items-start justify-between gap-2"
+                      >
+                        <div>
+                          <div className="text-xs font-bold text-amber-300">{block.title}</div>
+                          <div className="text-[11px] text-neutral-300 line-clamp-2 mt-0.5">
+                            {block.content}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCustomBlock(block.id)}
+                          title="Excluir este balão"
+                          className="p-1 rounded text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-neutral-500 italic">
+                    Nenhum balão personalizado criado ainda. Clique em "+ Novo Balão" para adicionar.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* ================= OUTRAS LÂMINAS ================= */}
+            <div className="p-4 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-4 shadow-lg">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block border-b border-neutral-800 pb-2">
+                Balões das Outras Lâminas
+              </span>
+
+              {/* Lâmina 2 */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-neutral-300 block">
+                  Lâmina 02: Conceito & Experiência
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showConceptStory')}
+                    className={`p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      eventData.showConceptStory !== false
+                        ? 'border-amber-400/40 bg-neutral-800 text-white'
+                        : 'border-neutral-800 bg-neutral-950/40 text-neutral-500'
+                    }`}
+                  >
+                    <span>História & Atmosfera</span>
+                    {eventData.showConceptStory !== false ? (
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5 text-neutral-600" />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showManifesto')}
+                    className={`p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      eventData.showManifesto !== false
+                        ? 'border-amber-400/40 bg-neutral-800 text-white'
+                        : 'border-neutral-800 bg-neutral-950/40 text-neutral-500'
+                    }`}
+                  >
+                    <span>Manifesto da Marca</span>
+                    {eventData.showManifesto !== false ? (
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5 text-neutral-600" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Lâmina 4 */}
+              <div className="space-y-2 pt-2 border-t border-neutral-800">
+                <span className="text-[11px] font-bold text-neutral-300 block">
+                  Lâmina 04: Atrações & Estrutura
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleToggleBlock('showStructureMetrics')}
+                  className={`w-full p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer text-xs ${
+                    eventData.showStructureMetrics !== false
+                      ? 'border-amber-400/40 bg-neutral-800 text-white'
+                      : 'border-neutral-800 bg-neutral-950/40 text-neutral-500'
+                  }`}
+                >
+                  <span>Balão de Métricas de Estrutura (m², Palcos, Eco, Wi-Fi)</span>
+                  {eventData.showStructureMetrics !== false ? (
+                    <Eye className="w-3.5 h-3.5 text-amber-400" />
+                  ) : (
+                    <EyeOff className="w-3.5 h-3.5 text-neutral-600" />
+                  )}
+                </button>
+              </div>
+
+              {/* Lâmina 6 */}
+              <div className="space-y-2 pt-2 border-t border-neutral-800">
+                <span className="text-[11px] font-bold text-neutral-300 block">
+                  Lâmina 06: Contato & Fechamento
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showContactCard')}
+                    className={`p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      eventData.showContactCard !== false
+                        ? 'border-amber-400/40 bg-neutral-800 text-white'
+                        : 'border-neutral-800 bg-neutral-950/40 text-neutral-500'
+                    }`}
+                  >
+                    <span>Cartão do Diretor</span>
+                    {eventData.showContactCard !== false ? (
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5 text-neutral-600" />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock('showClosingSponsors')}
+                    className={`p-2 rounded-lg border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      eventData.showClosingSponsors !== false
+                        ? 'border-amber-400/40 bg-neutral-800 text-white'
+                        : 'border-neutral-800 bg-neutral-950/40 text-neutral-500'
+                    }`}
+                  >
+                    <span>Faixa de Marcas</span>
+                    {eventData.showClosingSponsors !== false ? (
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5 text-neutral-600" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

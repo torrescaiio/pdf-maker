@@ -80,3 +80,46 @@ test('getDynamicPrintCss generates correct @page size and dimensions for each fo
   assert.ok(a4Css.includes('width: 210mm !important'));
 });
 
+test('generateSingleFileHtml properly excludes mediaChannels balloon when showMediaChannels is false', () => {
+  const dataWithoutChannels = {
+    ...defaultEventData,
+    showMediaChannels: false,
+    customBlocksSlide3: [
+      { id: 'c1', title: 'Comportamento Exclusivo', content: '85% do público consome marcas premium.' }
+    ],
+  };
+
+  const html = generateSingleFileHtml(
+    dataWithoutChannels,
+    defaultThemePresets.luxuryGold,
+    defaultImages,
+    'widescreen'
+  );
+
+  assert.ok(!html.includes('Canais de Mídia & Transmissão'));
+  assert.ok(html.includes('Perfil Sociodemográfico'));
+  assert.ok(html.includes('Comportamento Exclusivo'));
+});
+
+test('generateSingleFileHtml dynamically adapts metric columns when metric balloons are excluded', () => {
+  const dataWithFewMetrics = {
+    ...defaultEventData,
+    showMetricPower: false,
+    showMetricAge: false,
+  };
+
+  const html = generateSingleFileHtml(
+    dataWithFewMetrics,
+    defaultThemePresets.luxuryGold,
+    defaultImages,
+    'widescreen'
+  );
+
+  // Should have repeat(2, 1fr) for metrics
+  assert.ok(html.includes('grid-template-columns: repeat(2, 1fr)'));
+  assert.ok(html.includes(defaultEventData.audienceCount));
+  assert.ok(html.includes(defaultEventData.digitalImpressions));
+  assert.ok(!html.includes('Poder Aquisitivo'));
+});
+
+

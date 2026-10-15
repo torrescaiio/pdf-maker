@@ -355,6 +355,9 @@ export const defaultEventData: EventData = {
   manifestoQuote:
     'Marcas líderes não buscam apenas visibilidade; elas constroem legados culturais e memórias afetivas duradouras.',
   manifestoAuthor: 'Curadoria Aurora 2026',
+  showConceptStory: true,
+  showManifesto: true,
+  showPillars: true,
   pillars: [
     {
       title: 'Atmosfera Imersiva',
@@ -391,6 +394,14 @@ export const defaultEventData: EventData = {
     'Comunidade de 180k+ Seguidores',
     'Campanha Digital Geotargeted',
   ],
+  showMediaChannels: true,
+  showAudienceProfile: true,
+  showDemographicsGender: true,
+  showMetricAudience: true,
+  showMetricImpressions: true,
+  showMetricAge: true,
+  showMetricPower: true,
+  customBlocksSlide3: [],
 
   // Lâmina 4: Atrações & Estrutura
   structureTitle: 'ATRAÇÕES & INFRAESTRUTURA',
@@ -424,6 +435,7 @@ export const defaultEventData: EventData = {
     { value: '100% Eco', label: 'Neutralização de carbono' },
     { value: 'Wi-Fi 6', label: 'Conectividade dedicada' },
   ],
+  showStructureMetrics: true,
 
   // Lâmina 5: Cotas
   tiersTitle: 'COTAS DE PATROCÍNIO & RETORNO',
@@ -493,6 +505,11 @@ export const defaultEventData: EventData = {
   contactInstagram: '@aurorafestivaloficial',
   contactWebsite: 'www.aurorafestival.com.br',
   proposalValidityDays: 15,
+  showContactCard: true,
+  showContactSocials: true,
+  showClosingSponsors: true,
+  showClosingValidity: true,
+  customBlocksSlide6: [],
 };
 
 export const eventPresets: Record<string, EventData> = {
@@ -803,28 +820,74 @@ export function generateSingleFileHtml(
       <span class="badge">Audiência Qualificada</span>
       <h2 style="font-family: ${theme.fontFamilyHead}; font-size: 2.5vw; margin-top: 0.5vw;">PÚBLICO & ALCANCE</h2>
     </div>
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5vw;">
-      <div class="card" style="text-align: center;">
-        <span style="font-size: 2.8vw; font-weight: 800; color: ${theme.primaryColor};">${data.audienceCount}</span>
-        <p style="font-size: 1vw; margin-top: 0.5vw; font-weight: 600;">Público Estimado</p>
+    ${(() => {
+      const activeMetrics = [
+        data.showMetricAudience !== false ? { label: 'Público Estimado', value: data.audienceCount, color: theme.primaryColor } : null,
+        data.showMetricImpressions !== false ? { label: 'Impacto Digital', value: data.digitalImpressions, color: theme.secondaryColor } : null,
+        data.showMetricAge !== false ? { label: 'Faixa Etária Principal', value: data.ageBracket, color: theme.primaryColor } : null,
+        data.showMetricPower !== false ? { label: 'Poder Aquisitivo', value: data.purchasingPower, color: theme.secondaryColor } : null,
+      ].filter(Boolean) as { label: string; value: string; color: string }[];
+
+      if (activeMetrics.length === 0) return '';
+      return `<div style="display: grid; grid-template-columns: repeat(${activeMetrics.length}, 1fr); gap: 1.5vw;">
+        ${activeMetrics.map(m => `
+          <div class="card" style="text-align: center;">
+            <span style="font-size: 2.5vw; font-weight: 800; color: ${m.color};">${m.value}</span>
+            <p style="font-size: 0.95vw; margin-top: 0.5vw; font-weight: 600;">${m.label}</p>
+          </div>
+        `).join('')}
+      </div>`;
+    })()}
+    ${(() => {
+      const showProfile = data.showAudienceProfile !== false;
+      const showChannels = data.showMediaChannels !== false && data.mediaChannels && data.mediaChannels.length > 0;
+
+      if (!showProfile && !showChannels) return '';
+      if (showProfile && !showChannels) {
+        return `<div class="card" style="width: 100%;">
+          <h3 style="color: ${theme.primaryColor}; font-size: 1.2vw; margin-bottom: 0.5vw;">Perfil Sociodemográfico</h3>
+          <p style="font-size: 1.1vw; line-height: 1.5; color: ${theme.textColor};">${data.audienceProfileDescription}</p>
+        </div>`;
+      }
+      if (!showProfile && showChannels) {
+        return `<div class="card" style="width: 100%;">
+          <h3 style="color: ${theme.secondaryColor}; font-size: 1.2vw; margin-bottom: 0.5vw;">Canais de Mídia & Transmissão</h3>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8vw; margin-top: 0.8vw;">
+            ${data.mediaChannels.map(c => `
+              <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 0.6vw 1vw; border-radius: 6px; font-size: 0.9vw;">
+                ${c}
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+      }
+      return `<div style="display: grid; grid-template-columns: 7fr 5fr; gap: 1.5vw;">
+        <div class="card">
+          <h3 style="color: ${theme.primaryColor}; font-size: 1.2vw; margin-bottom: 0.5vw;">Perfil Sociodemográfico</h3>
+          <p style="font-size: 1.05vw; line-height: 1.5; color: ${theme.textColor};">${data.audienceProfileDescription}</p>
+        </div>
+        <div class="card">
+          <h3 style="color: ${theme.secondaryColor}; font-size: 1.2vw; margin-bottom: 0.5vw;">Canais de Mídia</h3>
+          <div style="display: flex; flex-direction: column; gap: 0.5vw; margin-top: 0.5vw;">
+            ${data.mediaChannels.map(c => `
+              <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 0.5vw 0.8vw; border-radius: 6px; font-size: 0.85vw;">
+                ${c}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>`;
+    })()}
+    ${(data.customBlocksSlide3 && data.customBlocksSlide3.length > 0) ? `
+      <div style="display: grid; grid-template-columns: repeat(${Math.min(data.customBlocksSlide3.length, 3)}, 1fr); gap: 1vw;">
+        ${data.customBlocksSlide3.map(b => `
+          <div class="card">
+            <h4 style="color: ${theme.primaryColor}; font-size: 1.1vw; margin-bottom: 0.4vw;">${b.title}</h4>
+            <p style="font-size: 0.95vw; line-height: 1.4; color: ${theme.textColor};">${b.content}</p>
+          </div>
+        `).join('')}
       </div>
-      <div class="card" style="text-align: center;">
-        <span style="font-size: 2.8vw; font-weight: 800; color: ${theme.secondaryColor};">${data.digitalImpressions}</span>
-        <p style="font-size: 1vw; margin-top: 0.5vw; font-weight: 600;">Impacto Digital</p>
-      </div>
-      <div class="card" style="text-align: center;">
-        <span style="font-size: 2.8vw; font-weight: 800; color: ${theme.primaryColor};">${data.ageBracket}</span>
-        <p style="font-size: 1vw; margin-top: 0.5vw; font-weight: 600;">Faixa Etária Principal</p>
-      </div>
-      <div class="card" style="text-align: center;">
-        <span style="font-size: 2.8vw; font-weight: 800; color: ${theme.secondaryColor};">${data.purchasingPower}</span>
-        <p style="font-size: 1vw; margin-top: 0.5vw; font-weight: 600;">Poder Aquisitivo</p>
-      </div>
-    </div>
-    <div class="card">
-      <h3 style="color: ${theme.primaryColor}; font-size: 1.2vw; margin-bottom: 0.5vw;">Perfil Sociodemográfico</h3>
-      <p style="font-size: 1.1vw; line-height: 1.5; color: ${theme.textColor};">${data.audienceProfileDescription}</p>
-    </div>
+    ` : ''}
   </section>
 
   <!-- Lâmina 4 -->
