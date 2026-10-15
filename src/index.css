@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-editorial {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+  .font-sans-body {
+    font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+  }
+  .font-tech {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+  .font-inter {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .font-festival {
+    font-family: 'Syne', system-ui, sans-serif;
+  }
+  .font-prestige {
+    font-family: 'Cinzel', serif;
+  }
+}
+
+/* Base custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Editable content outline on focus */
+[contenteditable="true"] {
+  outline: none;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  cursor: text;
+}
+[contenteditable="true"]:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+[contenteditable="true"]:focus {
+  background-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.4);
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(18, 18, 22, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gold-glow {
+  box-shadow: 0 0 35px -5px rgba(212, 175, 55, 0.35);
+}
+
+/* PDF & Print Strict Formatting */
+@media print {
+  *, *:before, *:after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #09090b !important;
+    color: #ffffff !important;
+    height: auto !important;
+  }
+
+  /* Hide everything marked no-print */
+  .no-print,
+  nav,
+  aside,
+  header,
+  footer:not(.slide-footer),
+  .sidebar-controls,
+  button,
+  .print-controls {
+    display: none !important;
+  }
+
+  /* Base slide container print pagination & isolation */
+  .slide-container-print {
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    overflow: hidden !important;
+    position: relative !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  /* Remove interactive outlines when printing */
+  [contenteditable="true"] {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Gerador de Media Kit e Proposta de Patrocínio",
+  "description": "Gerador automatizado de propostas de patrocínio e media kit em PDF com lâminas 16:9 de alto padrão, edição visual e exportação pronta para impressão.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
