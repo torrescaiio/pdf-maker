@@ -347,6 +347,19 @@ export const defaultEventData: EventData = {
   city: 'São Paulo',
   country: 'Brasil',
 
+  // Global Icon Toggle
+  hideAllIcons: false,
+
+  // Lâmina 1: Capa & Identidade
+  showCoverBadge: true,
+  showCoverCategory: true,
+  showCoverEdition: true,
+  showCoverSubtitle: true,
+  showCoverMetaDate: true,
+  showCoverMetaVenue: true,
+  showIconsSlide1: true,
+  customBlocksSlide1: [],
+
   // Lâmina 2: Conceito
   conceptTitle: 'O CONCEITO & EXPERIÊNCIA',
   conceptSubtitle: 'Muito além de um evento: um território de conexões autênticas e marcas memoráveis.',
@@ -357,7 +370,10 @@ export const defaultEventData: EventData = {
   manifestoAuthor: 'Curadoria Aurora 2026',
   showConceptStory: true,
   showManifesto: true,
+  showConceptImage: true,
   showPillars: true,
+  showIconsSlide2: true,
+  customBlocksSlide2: [],
   pillars: [
     {
       title: 'Atmosfera Imersiva',
@@ -401,6 +417,7 @@ export const defaultEventData: EventData = {
   showMetricImpressions: true,
   showMetricAge: true,
   showMetricPower: true,
+  showIconsSlide3: true,
   customBlocksSlide3: [],
 
   // Lâmina 4: Atrações & Estrutura
@@ -435,11 +452,19 @@ export const defaultEventData: EventData = {
     { value: '100% Eco', label: 'Neutralização de carbono' },
     { value: 'Wi-Fi 6', label: 'Conectividade dedicada' },
   ],
+  showAttractions: true,
   showStructureMetrics: true,
+  showIconsSlide4: true,
+  customBlocksSlide4: [],
 
   // Lâmina 5: Cotas
   tiersTitle: 'COTAS DE PATROCÍNIO & RETORNO',
   tiersSubtitle: 'Posicione sua marca no centro da experiência com entrega garantida de valor, visibilidade e ROI.',
+  showTiersTitle: true,
+  showTierBadge: true,
+  showTierDeliverables: true,
+  showIconsSlide5: true,
+  customBlocksSlide5: [],
   tiers: [
     {
       id: 'apresenta',
@@ -505,10 +530,15 @@ export const defaultEventData: EventData = {
   contactInstagram: '@aurorafestivaloficial',
   contactWebsite: 'www.aurorafestival.com.br',
   proposalValidityDays: 15,
+  showClosingCta: true,
   showContactCard: true,
-  showContactSocials: true,
+  showContactPhone: true,
+  showContactEmail: true,
+  showContactInstagram: true,
+  showContactWebsite: true,
   showClosingSponsors: true,
   showClosingValidity: true,
+  showIconsSlide6: true,
   customBlocksSlide6: [],
 };
 
@@ -767,18 +797,28 @@ export function generateSingleFileHtml(
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 14px;">
         ${images.logoUrl ? `<img src="${images.logoUrl}" alt="Logomarca" style="height: ${isMobile ? '44px' : '56px'}; max-width: 140px; object-fit: contain; border-radius: 8px; background: rgba(0,0,0,0.4); padding: 4px; border: 1px solid rgba(255,255,255,0.15);">` : ''}
-        <span class="badge">Proposta de Patrocínio & Media Kit • Confidencial</span>
+        ${data.showCoverBadge !== false ? `<span class="badge">Proposta de Patrocínio & Media Kit • Confidencial</span>` : ''}
       </div>
       <span style="font-family: monospace; font-size: 0.85rem; color: ${theme.primaryColor}; opacity: 0.9;">2026 OFFICIAL</span>
     </div>
     <div>
       <h1 class="hero-title">${data.name}</h1>
-      <p style="font-size: ${isMobile ? '14px' : isA4 ? '18px' : '1.5vw'}; margin-top: 1vw; color: ${theme.primaryColor}; font-weight: 600;">${data.subtitle}</p>
+      ${data.showCoverSubtitle !== false ? `<p style="font-size: ${isMobile ? '14px' : isA4 ? '18px' : '1.5vw'}; margin-top: 1vw; color: ${theme.primaryColor}; font-weight: 600;">${data.subtitle}</p>` : ''}
     </div>
+    ${(data.customBlocksSlide1 && data.customBlocksSlide1.length > 0) ? `
+      <div style="display: grid; grid-template-columns: repeat(${Math.min(data.customBlocksSlide1.length, 3)}, 1fr); gap: 1vw;">
+        ${data.customBlocksSlide1.map(b => `
+          <div class="card" style="background: rgba(0,0,0,0.6);">
+            <h4 style="color: ${theme.primaryColor}; font-size: 1.05vw; margin-bottom: 0.3vw;">${b.title}</h4>
+            <p style="font-size: 0.9vw; line-height: 1.4; color: ${theme.textColor};">${b.content}</p>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
     <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1vw; font-size: ${isMobile ? '11px' : '1.1vw'};">
-      <span><strong>Data:</strong> ${data.date}</span>
-      <span><strong>Local:</strong> ${data.venue} - ${data.city}</span>
-      <span><strong>Edição:</strong> ${data.edition}</span>
+      ${data.showCoverMetaDate !== false ? `<span><strong>Data:</strong> ${data.date}</span>` : ''}
+      ${data.showCoverMetaVenue !== false ? `<span><strong>Local:</strong> ${data.venue} - ${data.city}</span>` : ''}
+      ${data.showCoverEdition !== false ? `<span><strong>Edição:</strong> ${data.edition}</span>` : ''}
     </div>
   </section>
 
@@ -789,19 +829,24 @@ export function generateSingleFileHtml(
       <h2 style="font-family: ${theme.fontFamilyHead}; font-size: 2.5vw; margin-top: 0.5vw;">${data.conceptTitle}</h2>
       <p style="color: ${theme.textMuted}; font-size: 1.1vw;">${data.conceptSubtitle}</p>
     </div>
-    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2vw; align-items: center;">
+    ${(data.showConceptStory !== false || data.showConceptImage !== false) ? `
+    <div style="display: grid; grid-template-columns: ${data.showConceptImage !== false && data.showConceptStory !== false ? '1.2fr 1fr' : '1fr'}; gap: 2vw; align-items: center;">
+      ${data.showConceptStory !== false ? `
       <div class="card">
         <p style="font-size: 1.2vw; line-height: 1.6; margin-bottom: 1.5vw;">${data.conceptStory}</p>
+        ${data.showManifesto !== false ? `
         <blockquote style="border-left: 3px solid ${theme.primaryColor}; padding-left: 1vw; font-style: italic; color: ${theme.primaryColor}; font-size: 1.1vw;">
           "${data.manifestoQuote}"
           <footer style="margin-top: 0.5vw; font-size: 0.9vw; color: ${theme.textMuted};">— ${data.manifestoAuthor}</footer>
-        </blockquote>
-      </div>
+        </blockquote>` : ''}
+      </div>` : ''}
+      ${data.showConceptImage !== false ? `
       <div>
         <img src="${images.slide2Concept}" alt="Conceito" style="width: 100%; border-radius: 12px; border: 1px solid ${theme.cardBorder}; object-fit: cover; height: 18vw;">
-      </div>
-    </div>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1vw;">
+      </div>` : ''}
+    </div>` : ''}
+    ${data.showPillars !== false && data.pillars && data.pillars.length > 0 ? `
+    <div style="display: grid; grid-template-columns: repeat(${Math.min(data.pillars.length, 3)}, 1fr); gap: 1vw;">
       ${data.pillars
         .map(
           (p) => `
@@ -811,7 +856,17 @@ export function generateSingleFileHtml(
         </div>`
         )
         .join('')}
-    </div>
+    </div>` : ''}
+    ${(data.customBlocksSlide2 && data.customBlocksSlide2.length > 0) ? `
+      <div style="display: grid; grid-template-columns: repeat(${Math.min(data.customBlocksSlide2.length, 3)}, 1fr); gap: 1vw;">
+        ${data.customBlocksSlide2.map(b => `
+          <div class="card">
+            <h4 style="color: ${theme.primaryColor}; font-size: 1.1vw; margin-bottom: 0.4vw;">${b.title}</h4>
+            <p style="font-size: 0.95vw; line-height: 1.4; color: ${theme.textColor};">${b.content}</p>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
   </section>
 
   <!-- Lâmina 3 -->
@@ -896,7 +951,8 @@ export function generateSingleFileHtml(
       <span class="badge">Pilares da Experiência</span>
       <h2 style="font-family: ${theme.fontFamilyHead}; font-size: 2.5vw; margin-top: 0.5vw;">${data.structureTitle}</h2>
     </div>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5vw;">
+    ${data.showAttractions !== false && data.attractions && data.attractions.length > 0 ? `
+    <div style="display: grid; grid-template-columns: repeat(${Math.min(data.attractions.length, 3)}, 1fr); gap: 1.5vw;">
       ${data.attractions
         .map(
           (a) => `
@@ -915,8 +971,9 @@ export function generateSingleFileHtml(
         </div>`
         )
         .join('')}
-    </div>
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1vw;">
+    </div>` : ''}
+    ${data.showStructureMetrics !== false && data.structureMetrics && data.structureMetrics.length > 0 ? `
+    <div style="display: grid; grid-template-columns: repeat(${Math.min(data.structureMetrics.length, 4)}, 1fr); gap: 1vw;">
       ${data.structureMetrics
         .map(
           (m) => `
@@ -926,7 +983,17 @@ export function generateSingleFileHtml(
         </div>`
         )
         .join('')}
-    </div>
+    </div>` : ''}
+    ${(data.customBlocksSlide4 && data.customBlocksSlide4.length > 0) ? `
+      <div style="display: grid; grid-template-columns: repeat(${Math.min(data.customBlocksSlide4.length, 3)}, 1fr); gap: 1vw;">
+        ${data.customBlocksSlide4.map(b => `
+          <div class="card">
+            <h4 style="color: ${theme.primaryColor}; font-size: 1.1vw; margin-bottom: 0.4vw;">${b.title}</h4>
+            <p style="font-size: 0.95vw; line-height: 1.4; color: ${theme.textColor};">${b.content}</p>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
   </section>
 
   <!-- Lâmina 5 -->
@@ -941,20 +1008,31 @@ export function generateSingleFileHtml(
           (tier) => `
         <div class="card" style="${tier.highlighted ? `border: 2px solid ${theme.primaryColor}; box-shadow: 0 0 30px rgba(212,175,55,0.25);` : ''} display: flex; flex-direction: column; justify-content: space-between;">
           <div>
-            <span style="font-size: 0.75vw; font-weight: 700; color: ${tier.highlighted ? theme.primaryColor : theme.textMuted}; text-transform: uppercase;">${tier.badge}</span>
+            ${data.showTierBadge !== false ? `<span style="font-size: 0.75vw; font-weight: 700; color: ${tier.highlighted ? theme.primaryColor : theme.textMuted}; text-transform: uppercase;">${tier.badge}</span>` : ''}
             <h3 style="font-size: 1.4vw; font-weight: 800; margin-top: 0.2vw;">${tier.name}</h3>
             <div style="margin: 0.8vw 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8vw;">
               <span style="font-size: 1.8vw; font-weight: 900; color: ${theme.primaryColor};">${formatCurrencyBRL(tier.price)}</span>
               <p style="font-size: 0.8vw; color: ${theme.textMuted};">${tier.quotasAvailable} cota(s) disponível(is)</p>
             </div>
+            ${data.showTierDeliverables !== false ? `
             <ul style="list-style: none; font-size: 0.8vw; line-height: 1.6;">
               ${tier.deliverables.map((d) => `<li style="margin-bottom: 0.3vw;">✓ ${d}</li>`).join('')}
-            </ul>
+            </ul>` : ''}
           </div>
         </div>`
         )
         .join('')}
     </div>
+    ${(data.customBlocksSlide5 && data.customBlocksSlide5.length > 0) ? `
+      <div style="display: grid; grid-template-columns: repeat(${Math.min(data.customBlocksSlide5.length, 3)}, 1fr); gap: 1vw;">
+        ${data.customBlocksSlide5.map(b => `
+          <div class="card">
+            <h4 style="color: ${theme.primaryColor}; font-size: 1.1vw; margin-bottom: 0.4vw;">${b.title}</h4>
+            <p style="font-size: 0.95vw; line-height: 1.4; color: ${theme.textColor};">${b.content}</p>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
   </section>
 
   <!-- Lâmina 6 -->
@@ -964,26 +1042,37 @@ export function generateSingleFileHtml(
       <br>
       <span class="badge">Próximos Passos & Parceria</span>
       <h2 style="font-family: ${theme.fontFamilyHead}; font-size: ${isMobile ? '22px' : '3vw'}; margin-top: 1vw;">${data.closingTitle}</h2>
-      <p style="font-size: ${isMobile ? '12px' : '1.3vw'}; color: ${theme.primaryColor}; max-width: 800px; margin: 1vw auto;">${data.closingCta}</p>
+      ${data.showClosingCta !== false ? `<p style="font-size: ${isMobile ? '12px' : '1.3vw'}; color: ${theme.primaryColor}; max-width: 800px; margin: 1vw auto;">${data.closingCta}</p>` : ''}
     </div>
+    ${data.showContactCard !== false ? `
     <div class="card" style="max-width: 700px; margin: 0 auto; width: 100%;">
       <h3 style="font-size: ${isMobile ? '16px' : '1.5vw'}; color: #fff;">${data.contactName}</h3>
       <p style="font-size: ${isMobile ? '12px' : '1.1vw'}; color: ${theme.primaryColor};">${data.contactRole}</p>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: ${isMobile ? '6px' : '1vw'}; margin-top: 1vw; font-size: ${isMobile ? '11px' : '1vw'};">
-        <span><strong>WhatsApp:</strong> ${data.contactPhone}</span>
-        <span><strong>E-mail:</strong> ${data.contactEmail}</span>
-        <span><strong>Instagram:</strong> ${data.contactInstagram}</span>
-        <span><strong>Site:</strong> ${data.contactWebsite}</span>
+        ${data.showContactPhone !== false ? `<span><strong>WhatsApp:</strong> ${data.contactPhone}</span>` : ''}
+        ${data.showContactEmail !== false ? `<span><strong>E-mail:</strong> ${data.contactEmail}</span>` : ''}
+        ${data.showContactInstagram !== false ? `<span><strong>Instagram:</strong> ${data.contactInstagram}</span>` : ''}
+        ${data.showContactWebsite !== false ? `<span><strong>Site:</strong> ${data.contactWebsite}</span>` : ''}
       </div>
-      <p style="margin-top: 1vw; font-size: ${isMobile ? '9px' : '0.8vw'}; color: ${theme.textMuted};">Proposta válida por ${data.proposalValidityDays} dias a partir da data de apresentação.</p>
-    </div>
-    ${images.sponsorLogos && images.sponsorLogos.length > 0 ? `
+      ${data.showClosingValidity !== false ? `<p style="margin-top: 1vw; font-size: ${isMobile ? '9px' : '0.8vw'}; color: ${theme.textMuted};">Proposta válida por ${data.proposalValidityDays} dias a partir da data de apresentação.</p>` : ''}
+    </div>` : ''}
+    ${data.showClosingSponsors !== false && images.sponsorLogos && images.sponsorLogos.length > 0 ? `
     <div style="margin-top: 1vw;">
       <span style="font-size: 0.8vw; text-transform: uppercase; letter-spacing: 0.1em; color: ${theme.textMuted}; display: block; margin-bottom: 0.5vw;">Marcas & Patrocinadores Confirmados</span>
       <div style="display: flex; justify-content: center; align-items: center; gap: 1vw; flex-wrap: wrap;">
         ${images.sponsorLogos.map((s) => `<img src="${s}" alt="Patrocinador" style="height: ${isMobile ? '24px' : '32px'}; max-width: 90px; object-fit: contain; filter: grayscale(20%); background: rgba(255,255,255,0.06); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">`).join('')}
       </div>
     </div>` : ''}
+    ${(data.customBlocksSlide6 && data.customBlocksSlide6.length > 0) ? `
+      <div style="display: grid; grid-template-columns: repeat(${Math.min(data.customBlocksSlide6.length, 3)}, 1fr); gap: 1vw; max-width: 700px; margin: 0 auto; width: 100%;">
+        ${data.customBlocksSlide6.map(b => `
+          <div class="card">
+            <h4 style="color: ${theme.primaryColor}; font-size: 1.1vw; margin-bottom: 0.4vw;">${b.title}</h4>
+            <p style="font-size: 0.95vw; line-height: 1.4; color: ${theme.textColor};">${b.content}</p>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
   </section>
 </body>
 </html>`;

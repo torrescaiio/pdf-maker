@@ -28,6 +28,8 @@ import {
   Award,
 } from 'lucide-react';
 import type { EventData, ThemeConfig, SlideImages, TypographyPreset, LayoutFormat, CustomSlideBlock } from '../types.ts';
+import { IconPicker } from '../utils/iconMap.tsx';
+import { BalloonsManager } from './BalloonsManager.tsx';
 import {
   defaultThemePresets,
   defaultImages,
@@ -70,7 +72,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [aiToast, setAiToast] = useState<string | null>(null);
 
   // States for customizing balloons and blocks
+  const [selectedBalloonsSlide, setSelectedBalloonsSlide] = useState<'all' | 1 | 2 | 3 | 4 | 5 | 6>('all');
   const [newChannelText, setNewChannelText] = useState('');
+  const [newBlockSlideTarget, setNewBlockSlideTarget] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [newBlockTitle, setNewBlockTitle] = useState('');
   const [newBlockContent, setNewBlockContent] = useState('');
   const [isAddingCustomBlock, setIsAddingCustomBlock] = useState(false);
@@ -81,6 +85,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       const nextVal = typeof val === 'boolean' ? val : !current;
       return { ...prev, [field]: nextVal };
     });
+  };
+
+  const handleToggleAllIcons = () => {
+    setEventData((prev) => {
+      const willHide = !prev.hideAllIcons;
+      return {
+        ...prev,
+        hideAllIcons: willHide,
+      };
+    });
+    showToast(eventData.hideAllIcons ? 'Ícones ativados em toda a proposta!' : 'Ícones ocultados em toda a proposta!');
   };
 
   const handleAddMediaChannel = () => {
@@ -101,27 +116,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
     showToast('Canal de mídia excluído!');
   };
 
-  const handleAddCustomBlock = () => {
+  const handleAddCustomBlockToSlide = (slideNum: 1 | 2 | 3 | 4 | 5 | 6) => {
     if (!newBlockTitle.trim()) return;
     const newBlock: CustomSlideBlock = {
-      id: 'block_' + Date.now(),
+      id: `block_s${slideNum}_${Date.now()}`,
       title: newBlockTitle.trim(),
-      content: newBlockContent.trim() || 'Conteúdo do novo balão...',
+      content: newBlockContent.trim() || 'Conteúdo do novo balão personalizado...',
     };
+    const key = `customBlocksSlide${slideNum}` as keyof EventData;
     setEventData((prev) => ({
       ...prev,
-      customBlocksSlide3: [...(prev.customBlocksSlide3 || []), newBlock],
+      [key]: [...((prev[key] as CustomSlideBlock[]) || []), newBlock],
     }));
     setNewBlockTitle('');
     setNewBlockContent('');
     setIsAddingCustomBlock(false);
-    showToast('Novo balão personalizado criado na Lâmina 3!');
+    showToast(`Novo balão criado na Lâmina ${slideNum}!`);
   };
 
-  const handleRemoveCustomBlock = (id: string) => {
+  const handleRemoveCustomBlockFromSlide = (slideNum: 1 | 2 | 3 | 4 | 5 | 6, id: string) => {
+    const key = `customBlocksSlide${slideNum}` as keyof EventData;
     setEventData((prev) => ({
       ...prev,
-      customBlocksSlide3: (prev.customBlocksSlide3 || []).filter((b) => b.id !== id),
+      [key]: ((prev[key] as CustomSlideBlock[]) || []).filter((b) => b.id !== id),
     }));
     showToast('Balão personalizado removido!');
   };
@@ -129,9 +146,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleRestoreAllBalloons = () => {
     setEventData((prev) => ({
       ...prev,
+      hideAllIcons: false,
+      // Slide 1
+      showCoverBadge: true,
+      showCoverCategory: true,
+      showCoverEdition: true,
+      showCoverSubtitle: true,
+      showCoverMetaDate: true,
+      showCoverMetaVenue: true,
+      showIconsSlide1: true,
+      // Slide 2
       showConceptStory: true,
       showManifesto: true,
+      showConceptImage: true,
       showPillars: true,
+      showIconsSlide2: true,
+      // Slide 3
       showMediaChannels: true,
       showAudienceProfile: true,
       showDemographicsGender: true,
@@ -139,13 +169,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
       showMetricImpressions: true,
       showMetricAge: true,
       showMetricPower: true,
+      showIconsSlide3: true,
+      // Slide 4
+      showAttractions: true,
       showStructureMetrics: true,
+      showIconsSlide4: true,
+      // Slide 5
+      showTiersTitle: true,
+      showTierBadge: true,
+      showTierDeliverables: true,
+      showIconsSlide5: true,
+      // Slide 6
+      showClosingCta: true,
       showContactCard: true,
-      showContactSocials: true,
+      showContactPhone: true,
+      showContactEmail: true,
+      showContactInstagram: true,
+      showContactWebsite: true,
       showClosingSponsors: true,
       showClosingValidity: true,
+      showIconsSlide6: true,
     }));
-    showToast('Todos os balões foram restaurados com sucesso!');
+    showToast('Todos os balões e ícones foram restaurados em todas as lâminas!');
   };
 
   // Helper for image upload to base64 from computer
@@ -613,32 +658,20 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
           </div>
         )}
 
-        {/* ===================== TAB: PERSONALIZAR BALÕES & BLOCOS ===================== */}
+        {/* ===================== TAB: PERSONALIZAR BALÕES & BLOCOS (TODAS AS LÂMINAS) ===================== */}
         {activeTab === 'baloes' && (
+          <BalloonsManager
+            eventData={eventData}
+            setEventData={setEventData}
+            theme={theme}
+            showToast={showToast}
+            selectedSlide={selectedBalloonsSlide}
+            setSelectedSlide={setSelectedBalloonsSlide}
+          />
+        )}
+
+        {false && activeTab === 'baloes' && (
           <div className="space-y-6">
-            {/* Header / Intro */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-amber-950/40 via-neutral-900 to-neutral-950 border border-amber-500/30 shadow-lg">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
-                    Liberdade de Balões & Blocos
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleRestoreAllBalloons}
-                  title="Restaurar todos os balões originais em todas as lâminas"
-                  className="px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-amber-300 border border-amber-400/30 text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Restaurar Todos</span>
-                </button>
-              </div>
-              <p className="text-[11px] text-neutral-300 leading-relaxed">
-                Você tem <strong>liberdade total</strong> para excluir qualquer balão que não for utilizar (como o de canais de mídia na Lâmina 3), readicioná-los a qualquer momento e até criar novos balões personalizados!
-              </p>
-            </div>
 
             {/* ================= LÂMINA 3: PÚBLICO & MÉTRICAS ================= */}
             <div className="p-4 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-4 shadow-lg">
@@ -957,7 +990,7 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
                     </div>
                     <button
                       type="button"
-                      onClick={handleAddCustomBlock}
+                      onClick={() => handleAddCustomBlockToSlide(3)}
                       className="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
@@ -967,9 +1000,9 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
                 )}
 
                 {/* List of custom balloons */}
-                {eventData.customBlocksSlide3 && eventData.customBlocksSlide3.length > 0 ? (
+                {(eventData.customBlocksSlide3?.length ?? 0) > 0 ? (
                   <div className="space-y-2">
-                    {eventData.customBlocksSlide3.map((block) => (
+                    {(eventData.customBlocksSlide3 || []).map((block) => (
                       <div
                         key={block.id}
                         className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800 flex items-start justify-between gap-2"
@@ -982,7 +1015,7 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleRemoveCustomBlock(block.id)}
+                          onClick={() => handleRemoveCustomBlockFromSlide(3, block.id)}
                           title="Excluir este balão"
                           className="p-1 rounded text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                         >

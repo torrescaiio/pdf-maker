@@ -21,7 +21,7 @@ import {
   RotateCcw,
   Check,
 } from 'lucide-react';
-import type { EventData, ThemeConfig, SlideImages, LayoutFormat, CustomSlideBlock } from '../types.ts';
+import type { EventData, ThemeConfig, SlideImages, LayoutFormat, CustomSlideBlock, ExperiencePillar, AttractionCard, SponsorshipTier } from '../types.ts';
 import { formatConfigs, defaultImages } from '../utils/proposalLogic.ts';
 import { Slide1Cover } from './Slides/Slide1Cover.tsx';
 import { Slide2Concept } from './Slides/Slide2Concept.tsx';
@@ -139,6 +139,60 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
     }));
   };
 
+  // Custom blocks handlers generator
+  const createCustomBlockHandlers = (slideKey: 'customBlocksSlide1' | 'customBlocksSlide2' | 'customBlocksSlide3' | 'customBlocksSlide4' | 'customBlocksSlide5' | 'customBlocksSlide6') => ({
+    onAddCustomBlock: (block: CustomSlideBlock) => {
+      setEventData((prev) => ({
+        ...prev,
+        [slideKey]: [...(prev[slideKey] || []), block],
+      }));
+    },
+    onRemoveCustomBlock: (id: string) => {
+      setEventData((prev) => ({
+        ...prev,
+        [slideKey]: (prev[slideKey] || []).filter((b) => b.id !== id),
+      }));
+    },
+    onUpdateCustomBlock: (id: string, field: 'title' | 'content', value: string) => {
+      setEventData((prev) => ({
+        ...prev,
+        [slideKey]: (prev[slideKey] || []).map((b) =>
+          b.id === id ? { ...b, [field]: value } : b
+        ),
+      }));
+    },
+  });
+
+  const customSlide1Handlers = createCustomBlockHandlers('customBlocksSlide1');
+  const customSlide2Handlers = createCustomBlockHandlers('customBlocksSlide2');
+  const customSlide3Handlers = createCustomBlockHandlers('customBlocksSlide3');
+  const customSlide4Handlers = createCustomBlockHandlers('customBlocksSlide4');
+  const customSlide5Handlers = createCustomBlockHandlers('customBlocksSlide5');
+  const customSlide6Handlers = createCustomBlockHandlers('customBlocksSlide6');
+
+  // Lâmina 2: Pillars
+  const handleAddPillar = (pillar: ExperiencePillar) => {
+    setEventData((prev) => ({
+      ...prev,
+      pillars: [...prev.pillars, pillar],
+    }));
+  };
+
+  const handleRemovePillar = (index: number) => {
+    setEventData((prev) => ({
+      ...prev,
+      pillars: prev.pillars.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleUpdatePillarIcon = (index: number, iconName: string) => {
+    setEventData((prev) => ({
+      ...prev,
+      pillars: prev.pillars.map((p, i) => (i === index ? { ...p, iconName } : p)),
+    }));
+  };
+
+  // Lâmina 3: Media channels & demographics
   const handleUpdateMediaChannels = (channels: string[]) => {
     setEventData((prev) => ({
       ...prev,
@@ -153,25 +207,66 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
     }));
   };
 
-  const handleAddCustomBlockSlide3 = (block: CustomSlideBlock) => {
+  // Lâmina 4: Attractions & Structure metrics
+  const handleAddAttraction = (attraction: AttractionCard) => {
     setEventData((prev) => ({
       ...prev,
-      customBlocksSlide3: [...(prev.customBlocksSlide3 || []), block],
+      attractions: [...prev.attractions, attraction],
     }));
   };
 
-  const handleRemoveCustomBlockSlide3 = (id: string) => {
+  const handleRemoveAttraction = (index: number) => {
     setEventData((prev) => ({
       ...prev,
-      customBlocksSlide3: (prev.customBlocksSlide3 || []).filter((b) => b.id !== id),
+      attractions: prev.attractions.filter((_, i) => i !== index),
     }));
   };
 
-  const handleUpdateCustomBlockSlide3 = (id: string, field: 'title' | 'content', value: string) => {
+  const handleAddStructureMetric = (metric: { value: string; label: string }) => {
     setEventData((prev) => ({
       ...prev,
-      customBlocksSlide3: (prev.customBlocksSlide3 || []).map((b) =>
-        b.id === id ? { ...b, [field]: value } : b
+      structureMetrics: [...prev.structureMetrics, metric],
+    }));
+  };
+
+  const handleRemoveStructureMetric = (index: number) => {
+    setEventData((prev) => ({
+      ...prev,
+      structureMetrics: prev.structureMetrics.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Lâmina 5: Tiers & Deliverables
+  const handleAddTier = (tier: SponsorshipTier) => {
+    setEventData((prev) => ({
+      ...prev,
+      tiers: [...prev.tiers, tier],
+    }));
+  };
+
+  const handleRemoveTier = (tierId: string) => {
+    setEventData((prev) => ({
+      ...prev,
+      tiers: prev.tiers.filter((t) => t.id !== tierId),
+    }));
+  };
+
+  const handleAddDeliverable = (tierId: string, deliverable: string) => {
+    setEventData((prev) => ({
+      ...prev,
+      tiers: prev.tiers.map((t) =>
+        t.id === tierId ? { ...t, deliverables: [...t.deliverables, deliverable] } : t
+      ),
+    }));
+  };
+
+  const handleRemoveDeliverable = (tierId: string, index: number) => {
+    setEventData((prev) => ({
+      ...prev,
+      tiers: prev.tiers.map((t) =>
+        t.id === tierId
+          ? { ...t, deliverables: t.deliverables.filter((_, idx) => idx !== index) }
+          : t
       ),
     }));
   };
@@ -188,6 +283,8 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
         format={format}
         onUpdateText={handleUpdateText}
         onUpdateImage={handleUpdateImage}
+        onToggleBlock={handleToggleBlock}
+        {...customSlide1Handlers}
       />
     )},
     { id: 2, title: 'Conceito & Experiência', component: (
@@ -199,6 +296,11 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
         onUpdateText={handleUpdateText}
         onUpdatePillar={handleUpdatePillar}
         onUpdateImage={handleUpdateImage}
+        onToggleBlock={handleToggleBlock}
+        onAddPillar={handleAddPillar}
+        onRemovePillar={handleRemovePillar}
+        onUpdatePillarIcon={handleUpdatePillarIcon}
+        {...customSlide2Handlers}
       />
     )},
     { id: 3, title: 'Público & Métricas', component: (
@@ -212,9 +314,7 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
         onToggleBlock={handleToggleBlock}
         onUpdateMediaChannels={handleUpdateMediaChannels}
         onUpdateDemographics={handleUpdateDemographics}
-        onAddCustomBlock={handleAddCustomBlockSlide3}
-        onRemoveCustomBlock={handleRemoveCustomBlockSlide3}
-        onUpdateCustomBlock={handleUpdateCustomBlockSlide3}
+        {...customSlide3Handlers}
       />
     )},
     { id: 4, title: 'Atrações & Estrutura', component: (
@@ -226,6 +326,12 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
         onUpdateText={handleUpdateText}
         onUpdateAttraction={handleUpdateAttraction}
         onUpdateImage={handleUpdateImage}
+        onToggleBlock={handleToggleBlock}
+        onAddAttraction={handleAddAttraction}
+        onRemoveAttraction={handleRemoveAttraction}
+        onAddStructureMetric={handleAddStructureMetric}
+        onRemoveStructureMetric={handleRemoveStructureMetric}
+        {...customSlide4Handlers}
       />
     )},
     { id: 5, title: 'Cotas de Patrocínio', component: (
@@ -238,6 +344,12 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
         onUpdateTierPrice={handleUpdateTierPrice}
         onUpdateTierQuotas={handleUpdateTierQuotas}
         onUpdateTierTitle={handleUpdateTierTitle}
+        onToggleBlock={handleToggleBlock}
+        onAddTier={handleAddTier}
+        onRemoveTier={handleRemoveTier}
+        onAddDeliverable={handleAddDeliverable}
+        onRemoveDeliverable={handleRemoveDeliverable}
+        {...customSlide5Handlers}
       />
     )},
     { id: 6, title: 'Encerramento & Contato', component: (
@@ -250,6 +362,8 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
         onUpdateImage={handleUpdateImage}
         onAddSponsorLogo={handleAddSponsorLogo}
         onRemoveSponsorLogo={handleRemoveSponsorLogo}
+        onToggleBlock={handleToggleBlock}
+        {...customSlide6Handlers}
       />
     )},
   ];

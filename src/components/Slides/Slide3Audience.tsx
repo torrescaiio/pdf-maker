@@ -13,6 +13,8 @@ import {
   X,
   RotateCcw,
   Sparkles,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import type { EventData, ThemeConfig, SlideImages, LayoutFormat, CustomSlideBlock } from '../../types.ts';
 
@@ -132,6 +134,8 @@ export const Slide3Audience: React.FC<SlideProps> = ({
   const showChannels = data.showMediaChannels !== false;
   const showDemographics = data.showDemographicsGender !== false;
 
+  const showIcons = !data.hideAllIcons && data.showIconsSlide3 !== false;
+
   const aspectClass = isMobile ? 'aspect-[9/16]' : isA4 ? 'aspect-[210/297]' : 'aspect-[16/9]';
 
   return (
@@ -177,7 +181,7 @@ export const Slide3Audience: React.FC<SlideProps> = ({
               color: theme.primaryColor,
             }}
           >
-            <BarChart3 className="w-3 h-3" />
+            {showIcons && <BarChart3 className="w-3 h-3" />}
             Métricas de Audiência
           </span>
           <h2
@@ -194,6 +198,17 @@ export const Slide3Audience: React.FC<SlideProps> = ({
         </div>
         <div className="text-right text-[10px] sm:text-[11px] font-mono text-neutral-400 flex flex-col items-end gap-1">
           <div className="flex items-center gap-1.5">
+            {onToggleBlock && (
+              <button
+                type="button"
+                onClick={() => onToggleBlock('showIconsSlide3', !showIcons)}
+                title={showIcons ? 'Ocultar ícones desta lâmina' : 'Exibir ícones desta lâmina'}
+                className="px-2 py-0.5 rounded bg-black/40 hover:bg-neutral-800 border border-white/10 text-[9px] text-neutral-300 flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                {showIcons ? <EyeOff className="w-2.5 h-2.5 text-neutral-400" /> : <Eye className="w-2.5 h-2.5 text-amber-400" />}
+                <span>{showIcons ? 'Ocultar Ícones' : 'Exibir Ícones'}</span>
+              </button>
+            )}
             <button
               onClick={() => bgInputRef.current?.click()}
               title="Trocar imagem de fundo desta lâmina pelo seu computador"
@@ -252,7 +267,7 @@ export const Slide3Audience: React.FC<SlideProps> = ({
                   <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider">
                     Público Estimado
                   </span>
-                  <Users className="w-3.5 h-3.5 shrink-0" style={{ color: theme.primaryColor }} />
+                  {showIcons && <Users className="w-3.5 h-3.5 shrink-0" style={{ color: theme.primaryColor }} />}
                 </div>
                 <div
                   contentEditable
@@ -295,7 +310,7 @@ export const Slide3Audience: React.FC<SlideProps> = ({
                   <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider">
                     Alcance Digital
                   </span>
-                  <TrendingUp className="w-3.5 h-3.5 shrink-0" style={{ color: theme.secondaryColor }} />
+                  {showIcons && <TrendingUp className="w-3.5 h-3.5 shrink-0" style={{ color: theme.secondaryColor }} />}
                 </div>
                 <div
                   contentEditable
@@ -338,7 +353,7 @@ export const Slide3Audience: React.FC<SlideProps> = ({
                   <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider">
                     Faixa Etária
                   </span>
-                  <Calendar className="w-3.5 h-3.5 shrink-0" style={{ color: theme.primaryColor }} />
+                  {showIcons && <Calendar className="w-3.5 h-3.5 shrink-0" style={{ color: theme.primaryColor }} />}
                 </div>
                 <div
                   contentEditable
@@ -381,7 +396,7 @@ export const Slide3Audience: React.FC<SlideProps> = ({
                   <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider">
                     Poder Aquisitivo
                   </span>
-                  <CreditCard className="w-3.5 h-3.5 shrink-0" style={{ color: theme.secondaryColor }} />
+                  {showIcons && <CreditCard className="w-3.5 h-3.5 shrink-0" style={{ color: theme.secondaryColor }} />}
                 </div>
                 <div
                   contentEditable
@@ -487,7 +502,7 @@ export const Slide3Audience: React.FC<SlideProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                    <Award className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />
+                    {showIcons && <Award className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />}
                     Perfil do Consumidor
                   </div>
 
@@ -607,7 +622,7 @@ export const Slide3Audience: React.FC<SlideProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                    <Radio className="w-3.5 h-3.5" style={{ color: theme.secondaryColor }} />
+                    {showIcons && <Radio className="w-3.5 h-3.5" style={{ color: theme.secondaryColor }} />}
                     Canais de Mídia & Transmissão
                   </div>
 

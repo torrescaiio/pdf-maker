@@ -1,6 +1,22 @@
 import React, { useRef } from 'react';
-import { Mail, Phone, Instagram, Globe, ShieldCheck, Sparkles, Handshake, CheckCircle, Camera, Upload, Plus, Trash2 } from 'lucide-react';
-import type { EventData, ThemeConfig, SlideImages, LayoutFormat } from '../../types.ts';
+import {
+  Mail,
+  Phone,
+  Instagram,
+  Globe,
+  ShieldCheck,
+  Sparkles,
+  Handshake,
+  CheckCircle,
+  Camera,
+  Upload,
+  Plus,
+  Trash2,
+  Eye,
+  EyeOff,
+  X,
+} from 'lucide-react';
+import type { EventData, ThemeConfig, SlideImages, LayoutFormat, CustomSlideBlock } from '../../types.ts';
 
 interface SlideProps {
   data: EventData;
@@ -11,6 +27,10 @@ interface SlideProps {
   onUpdateImage?: (key: keyof SlideImages, value: string) => void;
   onAddSponsorLogo?: (logoUrl: string) => void;
   onRemoveSponsorLogo?: (index: number) => void;
+  onToggleBlock?: (field: keyof EventData, show: boolean) => void;
+  onAddCustomBlock?: (block: CustomSlideBlock) => void;
+  onRemoveCustomBlock?: (id: string) => void;
+  onUpdateCustomBlock?: (id: string, field: 'title' | 'content', value: string) => void;
 }
 
 export const Slide6Closing: React.FC<SlideProps> = ({
@@ -22,6 +42,10 @@ export const Slide6Closing: React.FC<SlideProps> = ({
   onUpdateImage,
   onAddSponsorLogo,
   onRemoveSponsorLogo,
+  onToggleBlock,
+  onAddCustomBlock,
+  onRemoveCustomBlock,
+  onUpdateCustomBlock,
 }) => {
   const isMobile = format === 'mobile';
   const isA4 = format === 'a4Portrait';
@@ -61,6 +85,28 @@ export const Slide6Closing: React.FC<SlideProps> = ({
       reader.readAsDataURL(file);
     });
   };
+
+  const handleCreateBlock = () => {
+    if (onAddCustomBlock) {
+      onAddCustomBlock({
+        id: 'block_s6_' + Date.now(),
+        title: 'Próxima Reunião de Alinhamento',
+        content: 'Agende uma conversa de 15 minutos pelo link de videoconferência ou WhatsApp.',
+      });
+    }
+  };
+
+  const showIcons = !data.hideAllIcons && data.showIconsSlide6 !== false;
+  const showCta = data.showClosingCta !== false;
+  const showContact = data.showContactCard !== false;
+  const showPhone = data.showContactPhone !== false;
+  const showEmail = data.showContactEmail !== false;
+  const showInstagram = data.showContactInstagram !== false;
+  const showWebsite = data.showContactWebsite !== false;
+  const showSponsors = data.showClosingSponsors !== false;
+  const showValidity = data.showClosingValidity !== false;
+
+  const hasExcludedBalloons = !showCta || !showContact || !showSponsors || !showValidity;
 
   const aspectClass = isMobile ? 'aspect-[9/16]' : isA4 ? 'aspect-[210/297]' : 'aspect-[16/9]';
 
@@ -111,7 +157,7 @@ export const Slide6Closing: React.FC<SlideProps> = ({
               color: theme.primaryColor,
             }}
           >
-            <Handshake className="w-3 h-3" />
+            {showIcons && <Handshake className="w-3 h-3" />}
             Parceria & Próximos Passos
           </span>
           <h2
@@ -134,16 +180,30 @@ export const Slide6Closing: React.FC<SlideProps> = ({
             {data.closingSubtitle}
           </p>
         </div>
+
         <div className="flex flex-col items-end gap-1.5">
-          <button
-            type="button"
-            onClick={() => bgInputRef.current?.click()}
-            title="Trocar imagem de fundo do slide do seu computador"
-            className="no-print flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 hover:border-amber-400 text-[11px] font-semibold text-neutral-200 hover:text-white transition-all shadow-md cursor-pointer"
-          >
-            <Camera className="w-3 h-3 text-amber-400" />
-            <span>Trocar Fundo (PC)</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            {onToggleBlock && (
+              <button
+                type="button"
+                onClick={() => onToggleBlock('showIconsSlide6', !showIcons)}
+                title={showIcons ? 'Ocultar ícones desta lâmina' : 'Exibir ícones desta lâmina'}
+                className="no-print flex items-center gap-1 px-2 py-0.5 rounded bg-black/40 hover:bg-neutral-800 border border-white/10 text-[9px] text-neutral-300 hover:text-white transition-colors cursor-pointer"
+              >
+                {showIcons ? <EyeOff className="w-2.5 h-2.5 text-neutral-400" /> : <Eye className="w-2.5 h-2.5 text-amber-400" />}
+                <span>{showIcons ? 'Ocultar Ícones' : 'Exibir Ícones'}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => bgInputRef.current?.click()}
+              title="Trocar imagem de fundo do slide do seu computador"
+              className="no-print flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 hover:border-amber-400 text-[11px] font-semibold text-neutral-200 hover:text-white transition-all shadow-md cursor-pointer"
+            >
+              <Camera className="w-3 h-3 text-amber-400" />
+              <span>Trocar Fundo (PC)</span>
+            </button>
+          </div>
           <div className="text-right text-[10px] sm:text-[11px] font-mono text-neutral-400">
             <span>{data.name}</span>
             <div className="text-neutral-500">LÂMINA 06 / 06</div>
@@ -152,236 +212,407 @@ export const Slide6Closing: React.FC<SlideProps> = ({
       </div>
 
       {/* Center Commercial Executive Card & Channels */}
-      <div className={`relative z-10 ${
-        isMobile ? 'flex flex-col gap-2.5 my-auto' : 'grid grid-cols-1 md:grid-cols-12 gap-5 my-auto items-center'
+      <div className={`relative z-10 my-auto ${
+        isMobile
+          ? 'flex flex-col gap-2.5'
+          : !showCta && !showSponsors
+          ? 'grid grid-cols-1 max-w-2xl mx-auto'
+          : !showContact
+          ? 'grid grid-cols-1 max-w-2xl mx-auto'
+          : 'grid grid-cols-1 md:grid-cols-12 gap-5 items-center'
       }`}>
         {/* Left Column: CTA message + Brand Logo & Sponsor Logos */}
-        <div className={`${isMobile ? 'w-full' : 'md:col-span-6'} space-y-2.5`}>
-          <div
-            className="p-3.5 sm:p-4 rounded-xl border backdrop-blur-md shadow-xl"
-            style={{
-              backgroundColor: theme.cardBg,
-              borderColor: theme.cardBorder,
-            }}
-          >
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Sparkles className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />
-              <span
-                className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider"
-                style={{ color: theme.primaryColor }}
+        {(showCta || showSponsors) && (
+          <div className={`${isMobile || !showContact ? 'w-full' : 'md:col-span-6'} space-y-2.5`}>
+            {showCta && (
+              <div
+                className="group/cta relative p-3.5 sm:p-4 rounded-xl border backdrop-blur-md shadow-xl"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.cardBorder,
+                }}
               >
-                Ativações Feitas Sob Medida
-              </span>
-            </div>
-
-            <p
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={handleBlur('closingCta')}
-              className="text-[11px] sm:text-xs leading-relaxed text-neutral-200 font-medium"
-            >
-              {data.closingCta}
-            </p>
-
-            <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] sm:text-[11px] text-neutral-400">
-              <span className="flex items-center gap-1 text-neutral-300">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                Atendimento consultivo direto
-              </span>
-              <span>Edição Limitada</span>
-            </div>
-          </div>
-
-          {/* Sponsor & Partner Logos Strip */}
-          <div className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-2 backdrop-blur-md">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                Marcas & Patrocinadores Confirmados
-              </span>
-              <button
-                type="button"
-                onClick={() => sponsorInputRef.current?.click()}
-                title="Adicionar logomarcas de patrocinadores do seu computador"
-                className="no-print flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/30 text-[10px] font-bold cursor-pointer transition-colors"
-              >
-                <Plus className="w-3 h-3" />
-                <span>+ Logo (PC)</span>
-              </button>
-            </div>
-
-            {images.sponsorLogos && images.sponsorLogos.length > 0 ? (
-              <div className="flex items-center gap-2 flex-wrap">
-                {images.sponsorLogos.map((sLogo, sIdx) => (
-                  <div
-                    key={sIdx}
-                    className="group/slogo relative h-9 px-2 py-1 rounded-lg bg-white/5 border border-white/15 flex items-center justify-center transition-all hover:bg-white/10"
-                  >
-                    <img
-                      src={sLogo}
-                      alt="Logo Parceiro"
-                      className="h-full max-w-[70px] object-contain"
-                    />
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    {showIcons && <Sparkles className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />}
+                    <span
+                      className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider"
+                      style={{ color: theme.primaryColor }}
+                    >
+                      Ativações Feitas Sob Medida
+                    </span>
+                  </div>
+                  {onToggleBlock && (
                     <button
                       type="button"
-                      onClick={() => onRemoveSponsorLogo && onRemoveSponsorLogo(sIdx)}
-                      title="Remover logotipo de patrocinador"
-                      className="no-print absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white opacity-0 group-hover/slogo:opacity-100 transition-opacity"
+                      onClick={() => onToggleBlock('showClosingCta', false)}
+                      title="Excluir este balão de mensagem"
+                      className="opacity-0 group-hover/cta:opacity-100 p-0.5 rounded text-red-400 hover:text-red-200 transition-opacity cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+
+                <p
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={handleBlur('closingCta')}
+                  className="text-xs sm:text-[13px] text-neutral-200 leading-relaxed outline-none"
+                >
+                  {data.closingCta}
+                </p>
+              </div>
+            )}
+
+            {/* Official Logo and Sponsor Logos Strip */}
+            {showSponsors && (
+              <div
+                className="group/sponsors relative p-3 rounded-xl border backdrop-blur-md"
+                style={{
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  borderColor: 'rgba(255,255,255,0.08)',
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
+                    Chancela Oficial & Marcas Parceiras
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => sponsorInputRef.current?.click()}
+                      className="no-print text-amber-400 hover:text-amber-300 text-[10px] flex items-center gap-1 cursor-pointer font-medium"
+                    >
+                      <Plus className="w-3 h-3" /> <span>Adicionar Logo</span>
+                    </button>
+                    {onToggleBlock && (
+                      <button
+                        type="button"
+                        onClick={() => onToggleBlock('showClosingSponsors', false)}
+                        title="Excluir faixa de marcas"
+                        className="opacity-0 group-hover/sponsors:opacity-100 p-0.5 rounded text-neutral-500 hover:text-red-400 transition-opacity cursor-pointer"
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {images.logoUrl && (
+                    <div className="h-9 p-1 bg-white/10 rounded-lg border border-white/20 flex items-center justify-center shrink-0">
+                      <img src={images.logoUrl} alt="Logo Oficial" className="h-full object-contain" />
+                    </div>
+                  )}
+
+                  {images.sponsorLogos && images.sponsorLogos.length > 0 ? (
+                    images.sponsorLogos.map((logo, idx) => (
+                      <div
+                        key={idx}
+                        className="group/slogo relative h-9 p-1 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 flex items-center justify-center transition-all shrink-0"
+                      >
+                        <img src={logo} alt="Sponsor" className="h-full object-contain" />
+                        {onRemoveSponsorLogo && (
+                          <button
+                            type="button"
+                            onClick={() => onRemoveSponsorLogo(idx)}
+                            className="no-print absolute -top-1 -right-1 p-0.5 rounded-full bg-red-600 text-white opacity-0 group-hover/slogo:opacity-100 transition-opacity cursor-pointer shadow"
+                          >
+                            <Trash2 className="w-2 h-2" />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-[10px] text-neutral-500 italic">
+                      Nenhuma marca de apoiador adicionada ainda.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Right Column: Contact Card */}
+        {showContact && (
+          <div className={`${isMobile || !showCta ? 'w-full' : 'md:col-span-6'}`}>
+            <div
+              className="group/contact relative p-4 sm:p-5 rounded-2xl border backdrop-blur-md shadow-2xl transition-all"
+              style={{
+                backgroundColor: theme.cardBg,
+                borderColor: theme.cardBorder,
+              }}
+            >
+              {onToggleBlock && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showContactCard', false)}
+                  title="Excluir este balão de contato"
+                  className="no-print absolute top-2 right-2 opacity-0 group-hover/contact:opacity-100 p-1 rounded-md text-red-400 hover:text-red-200 hover:bg-red-500/20 transition-all cursor-pointer z-30"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              <div className="flex items-center gap-3 mb-3 border-b border-white/10 pb-3">
+                <div
+                  className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-base text-neutral-950 shrink-0 shadow-lg"
+                  style={{ backgroundColor: theme.primaryColor }}
+                >
+                  {data.contactName.charAt(0)}
+                </div>
+                <div>
+                  <h4
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={handleBlur('contactName')}
+                    className="text-sm sm:text-base font-black text-white outline-none"
+                    style={{ fontFamily: theme.fontFamilyHead }}
+                  >
+                    {data.contactName}
+                  </h4>
+                  <div
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={handleBlur('contactRole')}
+                    className="text-xs text-neutral-400 font-medium outline-none"
+                  >
+                    {data.contactRole}
+                  </div>
+                </div>
+              </div>
+
+              {/* Channels List */}
+              <div className="space-y-2 text-xs">
+                {showPhone && (
+                  <div className="group/item flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <div className="flex items-center gap-2 text-neutral-200 min-w-0">
+                      {showIcons && <Phone className="w-3.5 h-3.5 shrink-0" style={{ color: theme.primaryColor }} />}
+                      <span
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={handleBlur('contactPhone')}
+                        className="truncate outline-none"
+                      >
+                        {data.contactPhone}
+                      </span>
+                    </div>
+                    {onToggleBlock && (
+                      <button
+                        type="button"
+                        onClick={() => onToggleBlock('showContactPhone', false)}
+                        title="Ocultar telefone"
+                        className="opacity-0 group-hover/item:opacity-100 text-neutral-500 hover:text-red-400 p-0.5 rounded transition-opacity cursor-pointer"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {showEmail && (
+                  <div className="group/item flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <div className="flex items-center gap-2 text-neutral-200 min-w-0">
+                      {showIcons && <Mail className="w-3.5 h-3.5 shrink-0" style={{ color: theme.secondaryColor }} />}
+                      <span
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={handleBlur('contactEmail')}
+                        className="truncate outline-none"
+                      >
+                        {data.contactEmail}
+                      </span>
+                    </div>
+                    {onToggleBlock && (
+                      <button
+                        type="button"
+                        onClick={() => onToggleBlock('showContactEmail', false)}
+                        title="Ocultar e-mail"
+                        className="opacity-0 group-hover/item:opacity-100 text-neutral-500 hover:text-red-400 p-0.5 rounded transition-opacity cursor-pointer"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {showInstagram && (
+                  <div className="group/item flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <div className="flex items-center gap-2 text-neutral-200 min-w-0">
+                      {showIcons && <Instagram className="w-3.5 h-3.5 shrink-0" style={{ color: theme.primaryColor }} />}
+                      <span
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={handleBlur('contactInstagram')}
+                        className="truncate outline-none"
+                      >
+                        {data.contactInstagram}
+                      </span>
+                    </div>
+                    {onToggleBlock && (
+                      <button
+                        type="button"
+                        onClick={() => onToggleBlock('showContactInstagram', false)}
+                        title="Ocultar Instagram"
+                        className="opacity-0 group-hover/item:opacity-100 text-neutral-500 hover:text-red-400 p-0.5 rounded transition-opacity cursor-pointer"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {showWebsite && (
+                  <div className="group/item flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <div className="flex items-center gap-2 text-neutral-200 min-w-0">
+                      {showIcons && <Globe className="w-3.5 h-3.5 shrink-0" style={{ color: theme.secondaryColor }} />}
+                      <span
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={handleBlur('contactWebsite')}
+                        className="truncate outline-none"
+                      >
+                        {data.contactWebsite}
+                      </span>
+                    </div>
+                    {onToggleBlock && (
+                      <button
+                        type="button"
+                        onClick={() => onToggleBlock('showContactWebsite', false)}
+                        title="Ocultar website"
+                        className="opacity-0 group-hover/item:opacity-100 text-neutral-500 hover:text-red-400 p-0.5 rounded transition-opacity cursor-pointer"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Proposal Validity Card */}
+              {showValidity && (
+                <div className="group/val relative mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-neutral-400">
+                  <div className="flex items-center gap-1.5">
+                    {showIcons && <ShieldCheck className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />}
+                    <span>Validade da Proposta:</span>
+                    <span className="font-bold text-white">
+                      {data.proposalValidityDays} dias corridos
+                    </span>
+                  </div>
+                  {onToggleBlock && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleBlock('showClosingValidity', false)}
+                      title="Excluir validade"
+                      className="opacity-0 group-hover/val:opacity-100 p-0.5 rounded text-neutral-500 hover:text-red-400 transition-opacity cursor-pointer"
                     >
                       <Trash2 className="w-2.5 h-2.5" />
                     </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[10px] text-neutral-400 italic">
-                Nenhum logotipo de patrocinador adicionado ainda. Clique em "+ Logo (PC)" para carregar do seu computador.
-              </p>
-            )}
-          </div>
-
-          {/* Confidentiality seal card */}
-          <div className="p-2.5 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2 text-[10px] sm:text-[11px] text-neutral-400">
-            <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
-            <div>
-              <span className="text-neutral-200 font-semibold">Proposta Oficial:</span>{' '}
-              Válida por {data.proposalValidityDays} dias a contar da apresentação comercial.
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Contact Card with Channels & Signature space */}
-        <div className={`${isMobile ? 'w-full' : 'md:col-span-6'}`}>
-          <div
-            className="p-4 sm:p-5 rounded-xl border backdrop-blur-md shadow-xl relative"
-            style={{
-              backgroundColor: 'rgba(20, 20, 26, 0.92)',
-              borderColor: theme.primaryColor,
-              borderWidth: '1.5px',
-            }}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 font-mono">
-                  Contato Comercial Direto
-                </span>
-                <h3
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={handleBlur('contactName')}
-                  className="text-lg sm:text-xl font-black tracking-tight text-white mt-0.5"
-                >
-                  {data.contactName}
-                </h3>
-                <div
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={handleBlur('contactRole')}
-                  className="text-[11px] sm:text-xs font-semibold mt-0.5"
-                  style={{ color: theme.primaryColor }}
-                >
-                  {data.contactRole}
+                  )}
                 </div>
-              </div>
-
-              {images.logoUrl && (
-                <img
-                  src={images.logoUrl}
-                  alt="Logo"
-                  className="w-10 h-10 rounded-lg object-cover border border-white/10"
-                />
               )}
             </div>
-
-            {/* Channels Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-2.5 border-t border-white/10">
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-black/50 border border-white/5">
-                <Phone className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />
-                <div>
-                  <div className="text-[9px] text-neutral-400 uppercase font-bold">WhatsApp / Telefone</div>
-                  <div
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={handleBlur('contactPhone')}
-                    className="font-medium text-neutral-200 font-mono text-[11px]"
-                  >
-                    {data.contactPhone}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-black/50 border border-white/5">
-                <Mail className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />
-                <div>
-                  <div className="text-[9px] text-neutral-400 uppercase font-bold">E-mail Corporativo</div>
-                  <div
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={handleBlur('contactEmail')}
-                    className="font-medium text-neutral-200 truncate text-[11px]"
-                  >
-                    {data.contactEmail}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-black/50 border border-white/5">
-                <Instagram className="w-3.5 h-3.5" style={{ color: theme.secondaryColor }} />
-                <div>
-                  <div className="text-[9px] text-neutral-400 uppercase font-bold">Instagram Oficial</div>
-                  <div
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={handleBlur('contactInstagram')}
-                    className="font-medium text-neutral-200 text-[11px]"
-                  >
-                    {data.contactInstagram}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-black/50 border border-white/5">
-                <Globe className="w-3.5 h-3.5" style={{ color: theme.secondaryColor }} />
-                <div>
-                  <div className="text-[9px] text-neutral-400 uppercase font-bold">Portal Web</div>
-                  <div
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={handleBlur('contactWebsite')}
-                    className="font-medium text-neutral-200 truncate text-[11px]"
-                  >
-                    {data.contactWebsite}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Signature Area */}
-            <div className="mt-3.5 pt-2.5 border-t border-white/10 flex items-end justify-between">
-              <div>
-                <div className="text-[9px] uppercase font-bold tracking-wider text-neutral-400">
-                  Assinatura do Responsável
-                </div>
-                <div className="h-6 flex items-end font-serif italic text-xs text-neutral-300">
-                  {data.contactName}
-                </div>
-              </div>
-
-              <div className="text-right text-[9px] text-neutral-500 font-mono">
-                {data.city}, {new Date().getFullYear()}
-              </div>
-            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Slide Footer */}
-      <div className="slide-footer relative z-10 w-full pt-4 border-t border-white/15 flex items-center justify-between text-xs text-neutral-400">
-        <div>
-          {data.name} • Todos os direitos reservados • {data.edition}
+      {/* Custom Balloons Added by User on Slide 6 */}
+      {data.customBlocksSlide6 && data.customBlocksSlide6.length > 0 && (
+        <div className="grid gap-3 pt-2 grid-cols-1 sm:grid-cols-2 relative z-10">
+          {data.customBlocksSlide6.map((b) => (
+            <div
+              key={b.id}
+              className="group/cb relative p-3 rounded-xl border backdrop-blur-md shadow-lg"
+              style={{
+                backgroundColor: theme.cardBg,
+                borderColor: theme.cardBorder,
+              }}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => onUpdateCustomBlock?.(b.id, 'title', e.currentTarget.innerText.trim())}
+                  className="text-xs font-bold uppercase tracking-wider outline-none"
+                  style={{ color: theme.primaryColor }}
+                >
+                  {b.title}
+                </span>
+                {onRemoveCustomBlock && (
+                  <button
+                    type="button"
+                    onClick={() => onRemoveCustomBlock(b.id)}
+                    title="Excluir este balão"
+                    className="p-1 rounded text-red-400 hover:text-red-200 hover:bg-red-500/20 transition-all cursor-pointer"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+              <p
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => onUpdateCustomBlock?.(b.id, 'content', e.currentTarget.innerText.trim())}
+                className="text-xs text-neutral-200 outline-none leading-snug"
+              >
+                {b.content}
+              </p>
+            </div>
+          ))}
         </div>
-        <div className="font-mono">
-          LÂMINA 06 / 06
+      )}
+
+      {/* Restoration Toolbar */}
+      <div className="no-print relative z-10 flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-white/10 text-[9px] sm:text-[10px] text-neutral-400">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {hasExcludedBalloons && onToggleBlock && (
+            <>
+              {!showCta && (
+                <button
+                  onClick={() => onToggleBlock('showClosingCta', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Balão de Mensagem</span>
+                </button>
+              )}
+              {!showContact && (
+                <button
+                  onClick={() => onToggleBlock('showContactCard', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Cartão do Diretor</span>
+                </button>
+              )}
+              {!showSponsors && (
+                <button
+                  onClick={() => onToggleBlock('showClosingSponsors', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Faixa de Patrocinadores</span>
+                </button>
+              )}
+              {!showValidity && (
+                <button
+                  onClick={() => onToggleBlock('showClosingValidity', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Validade</span>
+                </button>
+              )}
+            </>
+          )}
+
+          {onAddCustomBlock && (
+            <button
+              onClick={handleCreateBlock}
+              className="px-2 py-0.5 rounded bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-white/10 flex items-center gap-1 cursor-pointer"
+            >
+              <Sparkles className="w-3 h-3 text-amber-400" />
+              <span>+ Novo Balão no Fechamento</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

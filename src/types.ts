@@ -40,6 +40,19 @@ export interface EventData {
   city: string;
   country: string;
 
+  // Global Icon Toggle
+  hideAllIcons?: boolean;
+
+  // Lâmina 1: Capa & Identidade
+  showCoverBadge?: boolean;
+  showCoverCategory?: boolean;
+  showCoverEdition?: boolean;
+  showCoverSubtitle?: boolean;
+  showCoverMetaDate?: boolean;
+  showCoverMetaVenue?: boolean;
+  showIconsSlide1?: boolean;
+  customBlocksSlide1?: CustomSlideBlock[];
+
   // Lâmina 2: Conceito
   conceptTitle: string;
   conceptSubtitle: string;
@@ -49,7 +62,10 @@ export interface EventData {
   pillars: ExperiencePillar[];
   showConceptStory?: boolean;
   showManifesto?: boolean;
+  showConceptImage?: boolean;
   showPillars?: boolean;
+  showIconsSlide2?: boolean;
+  customBlocksSlide2?: CustomSlideBlock[];
 
   // Lâmina 3: Público & Métricas
   audienceCount: string;
@@ -59,28 +75,35 @@ export interface EventData {
   demographicsGender: { label: string; percentage: number }[];
   audienceProfileDescription: string;
   mediaChannels: string[];
-
-  // Freedom / Customization toggles for Slide 3 balloons:
-  showMediaChannels?: boolean; // Can be excluded/deleted or restored
-  showAudienceProfile?: boolean; // Can be excluded/deleted or restored
-  showDemographicsGender?: boolean; // Can be excluded/deleted or restored
-  showMetricAudience?: boolean; // Metric card 1
-  showMetricImpressions?: boolean; // Metric card 2
-  showMetricAge?: boolean; // Metric card 3
-  showMetricPower?: boolean; // Metric card 4
-  customBlocksSlide3?: CustomSlideBlock[]; // User-created balloons on Slide 3
+  showMediaChannels?: boolean;
+  showAudienceProfile?: boolean;
+  showDemographicsGender?: boolean;
+  showMetricAudience?: boolean;
+  showMetricImpressions?: boolean;
+  showMetricAge?: boolean;
+  showMetricPower?: boolean;
+  showIconsSlide3?: boolean;
+  customBlocksSlide3?: CustomSlideBlock[];
 
   // Lâmina 4: Atrações & Estrutura
   structureTitle: string;
   structureSubtitle: string;
   attractions: AttractionCard[];
   structureMetrics: { value: string; label: string }[];
+  showAttractions?: boolean;
   showStructureMetrics?: boolean;
+  showIconsSlide4?: boolean;
+  customBlocksSlide4?: CustomSlideBlock[];
 
   // Lâmina 5: Cotas
   tiersTitle: string;
   tiersSubtitle: string;
   tiers: SponsorshipTier[];
+  showTiersTitle?: boolean;
+  showTierBadge?: boolean;
+  showTierDeliverables?: boolean;
+  showIconsSlide5?: boolean;
+  customBlocksSlide5?: CustomSlideBlock[];
 
   // Lâmina 6: Contato
   closingTitle: string;
@@ -93,10 +116,15 @@ export interface EventData {
   contactInstagram: string;
   contactWebsite: string;
   proposalValidityDays: number;
+  showClosingCta?: boolean;
   showContactCard?: boolean;
-  showContactSocials?: boolean;
+  showContactPhone?: boolean;
+  showContactEmail?: boolean;
+  showContactInstagram?: boolean;
+  showContactWebsite?: boolean;
   showClosingSponsors?: boolean;
   showClosingValidity?: boolean;
+  showIconsSlide6?: boolean;
   customBlocksSlide6?: CustomSlideBlock[];
 }
 

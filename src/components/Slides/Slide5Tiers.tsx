@@ -1,6 +1,17 @@
 import React from 'react';
-import { Crown, Check, Star, ShieldCheck } from 'lucide-react';
-import type { EventData, ThemeConfig, SlideImages, LayoutFormat } from '../../types.ts';
+import {
+  Crown,
+  Check,
+  Star,
+  ShieldCheck,
+  Trash2,
+  Plus,
+  Eye,
+  EyeOff,
+  Sparkles,
+  X,
+} from 'lucide-react';
+import type { EventData, ThemeConfig, SlideImages, LayoutFormat, CustomSlideBlock, SponsorshipTier } from '../../types.ts';
 import { formatCurrencyBRL } from '../../utils/proposalLogic.ts';
 
 interface SlideProps {
@@ -12,6 +23,14 @@ interface SlideProps {
   onUpdateTierPrice?: (tierId: string, price: number) => void;
   onUpdateTierQuotas?: (tierId: string, quotas: number) => void;
   onUpdateTierTitle?: (tierId: string, name: string) => void;
+  onToggleBlock?: (field: keyof EventData, show: boolean) => void;
+  onAddTier?: (tier: SponsorshipTier) => void;
+  onRemoveTier?: (tierId: string) => void;
+  onAddDeliverable?: (tierId: string, deliverable: string) => void;
+  onRemoveDeliverable?: (tierId: string, index: number) => void;
+  onAddCustomBlock?: (block: CustomSlideBlock) => void;
+  onRemoveCustomBlock?: (id: string) => void;
+  onUpdateCustomBlock?: (id: string, field: 'title' | 'content', value: string) => void;
 }
 
 export const Slide5Tiers: React.FC<SlideProps> = ({
@@ -22,6 +41,14 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
   onUpdateTierPrice,
   onUpdateTierQuotas,
   onUpdateTierTitle,
+  onToggleBlock,
+  onAddTier,
+  onRemoveTier,
+  onAddDeliverable,
+  onRemoveDeliverable,
+  onAddCustomBlock,
+  onRemoveCustomBlock,
+  onUpdateCustomBlock,
 }) => {
   const isMobile = format === 'mobile';
   const isA4 = format === 'a4Portrait';
@@ -31,6 +58,41 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
       onUpdateText(field, e.currentTarget.innerText.trim());
     }
   };
+
+  const handleCreateTier = () => {
+    if (onAddTier) {
+      const newId = 'tier_' + Date.now();
+      onAddTier({
+        id: newId,
+        name: 'COTA PERSONALIZADA',
+        badge: 'PATROCÍNIO EXCLUSIVO',
+        price: 75000,
+        quotasAvailable: 2,
+        highlighted: false,
+        deliverables: [
+          'Logotipo em todos os materiais de divulgação',
+          'Espaço para ativação de marca',
+          'Ingressos VIP com acesso a camarote',
+          'Menção nas redes sociais oficiais',
+        ],
+      });
+    }
+  };
+
+  const handleCreateBlock = () => {
+    if (onAddCustomBlock) {
+      onAddCustomBlock({
+        id: 'block_s5_' + Date.now(),
+        title: 'Condições Especiais de Pagamento',
+        content: 'Parcelamento em até 4x sem juros ou desconto de 5% para quitação à vista.',
+      });
+    }
+  };
+
+  const showIcons = !data.hideAllIcons && data.showIconsSlide5 !== false;
+  const showTitle = data.showTiersTitle !== false;
+  const showBadge = data.showTierBadge !== false;
+  const showDeliverables = data.showTierDeliverables !== false;
 
   const aspectClass = isMobile ? 'aspect-[9/16]' : isA4 ? 'aspect-[210/297]' : 'aspect-[16/9]';
 
@@ -65,20 +127,22 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
               color: theme.primaryColor,
             }}
           >
-            <Crown className="w-3 h-3" />
+            {showIcons && <Crown className="w-3 h-3" />}
             Investimento & Retorno
           </span>
-          <h2
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={handleBlur('tiersTitle')}
-            className={`${
-              isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
-            } font-black uppercase tracking-tight`}
-            style={{ fontFamily: theme.fontFamilyHead }}
-          >
-            {data.tiersTitle}
-          </h2>
+          {showTitle && (
+            <h2
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={handleBlur('tiersTitle')}
+              className={`${
+                isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
+              } font-black uppercase tracking-tight`}
+              style={{ fontFamily: theme.fontFamilyHead }}
+            >
+              {data.tiersTitle}
+            </h2>
+          )}
           <p
             contentEditable
             suppressContentEditableWarning
@@ -88,135 +152,248 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
             {data.tiersSubtitle}
           </p>
         </div>
-        <div className="text-right text-[10px] sm:text-[11px] font-mono text-neutral-400">
+
+        <div className="text-right text-[10px] sm:text-[11px] font-mono text-neutral-400 flex flex-col items-end gap-1">
+          {onToggleBlock && (
+            <button
+              type="button"
+              onClick={() => onToggleBlock('showIconsSlide5', !showIcons)}
+              title={showIcons ? 'Ocultar ícones desta lâmina' : 'Exibir ícones desta lâmina'}
+              className="no-print flex items-center gap-1 px-2 py-0.5 rounded bg-black/40 hover:bg-neutral-800 border border-white/10 text-[9px] text-neutral-300 hover:text-white transition-colors cursor-pointer"
+            >
+              {showIcons ? <EyeOff className="w-2.5 h-2.5 text-neutral-400" /> : <Eye className="w-2.5 h-2.5 text-amber-400" />}
+              <span>{showIcons ? 'Ocultar Ícones' : 'Exibir Ícones'}</span>
+            </button>
+          )}
           <span>{data.name}</span>
           <div className="text-neutral-500">LÂMINA 05 / 06</div>
         </div>
       </div>
 
-      {/* 3 Tier Cards: Stacked vertically on mobile, 3 columns on widescreen */}
-      <div className={`relative z-10 ${
-        isMobile ? 'flex flex-col gap-2.5 my-auto' : 'grid grid-cols-1 md:grid-cols-3 gap-3.5 my-auto items-stretch'
-      }`}>
-        {data.tiers.map((tier) => {
-          const isHighlight = tier.highlighted;
-          const deliverableLimit = isMobile ? 3 : 6;
+      {/* 3 Tier Cards (with deletion, additions, and reflow) */}
+      <div className="relative z-10 my-auto space-y-2">
+        <div className="flex items-center justify-between text-[10px] text-neutral-400">
+          <span className="font-bold uppercase tracking-wider">Cotas Configuradas ({data.tiers.length})</span>
+          {onAddTier && (
+            <button
+              type="button"
+              onClick={handleCreateTier}
+              className="no-print flex items-center gap-1 px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-amber-300 font-semibold border border-white/10 transition-colors cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>Adicionar Cota</span>
+            </button>
+          )}
+        </div>
 
-          return (
+        <div
+          className={`grid gap-3.5 items-stretch ${
+            isMobile
+              ? 'flex flex-col gap-2.5'
+              : data.tiers.length === 1
+              ? 'grid-cols-1 max-w-md mx-auto'
+              : data.tiers.length === 2
+              ? 'grid-cols-1 sm:grid-cols-2'
+              : data.tiers.length === 3
+              ? 'grid-cols-1 md:grid-cols-3'
+              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+          }`}
+        >
+          {data.tiers.map((tier) => (
             <div
               key={tier.id}
-              className={`relative rounded-xl ${
-                isMobile ? 'p-2.5 sm:p-3' : 'p-3.5 sm:p-4'
-              } backdrop-blur-md flex flex-col justify-between transition-all duration-300 shadow-xl ${
-                isHighlight ? 'ring-2 ring-offset-1 ring-offset-neutral-950' : ''
+              className={`group/tier relative rounded-xl border backdrop-blur-md p-3.5 sm:p-4 flex flex-col justify-between shadow-xl transition-all ${
+                tier.highlighted
+                  ? 'border-amber-400/80 ring-1 ring-amber-400/40 shadow-amber-950/30'
+                  : 'hover:border-white/30'
               }`}
               style={{
-                backgroundColor: isHighlight ? 'rgba(26, 22, 14, 0.92)' : theme.cardBg,
-                borderColor: isHighlight ? theme.primaryColor : theme.cardBorder,
-                borderWidth: isHighlight ? '2px' : '1px',
-                boxShadow: isHighlight ? `0 0 25px ${theme.primaryColor}33` : undefined,
+                backgroundColor: theme.cardBg,
+                borderColor: tier.highlighted ? theme.primaryColor : theme.cardBorder,
               }}
             >
-              {/* Highlight ribbon badge */}
-              {isHighlight && (
-                <div
-                  className={`absolute ${
-                    isMobile ? '-top-2.5 right-3' : '-top-3 left-1/2 -translate-x-1/2'
-                  } px-2.5 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-black shadow-lg flex items-center gap-1 whitespace-nowrap`}
-                  style={{ backgroundColor: theme.primaryColor }}
+              {/* Delete Tier Button on hover */}
+              {onRemoveTier && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveTier(tier.id)}
+                  title="Excluir este balão / cota"
+                  className="no-print absolute top-2 right-2 opacity-0 group-hover/tier:opacity-100 p-1 rounded-md text-red-400 hover:text-red-200 hover:bg-red-500/20 transition-all cursor-pointer z-30"
                 >
-                  <Star className="w-2.5 h-2.5 fill-black text-black" />
-                  COTA PRINCIPAL
-                </div>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               )}
 
-              {/* Tier Header & Pricing */}
               <div>
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span
-                    className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full truncate"
-                    style={{
-                      backgroundColor: isHighlight
-                        ? 'rgba(212, 175, 55, 0.2)'
-                        : 'rgba(255, 255, 255, 0.08)',
-                      color: isHighlight ? theme.primaryColor : '#a1a1aa',
-                    }}
-                  >
-                    {tier.badge}
-                  </span>
-                  <span className="text-[10px] font-mono text-neutral-400 shrink-0">
-                    {tier.quotasAvailable} {tier.quotasAvailable === 1 ? 'cota única' : 'cotas'}
-                  </span>
-                </div>
+                {/* Header of Tier */}
+                {showBadge && (
+                  <div className="flex items-center gap-1.5 mb-1 text-[9px] font-bold uppercase tracking-wider">
+                    {showIcons && tier.highlighted && <Crown className="w-3 h-3 text-amber-400" />}
+                    <span style={{ color: tier.highlighted ? theme.primaryColor : '#a1a1aa' }}>
+                      {tier.badge}
+                    </span>
+                  </div>
+                )}
 
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={(e) =>
-                      onUpdateTierTitle &&
-                      onUpdateTierTitle(tier.id, e.currentTarget.innerText.trim())
-                    }
-                    className={`${
-                      isMobile ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
-                    } font-black uppercase tracking-tight text-white leading-tight`}
-                    style={{ fontFamily: theme.fontFamilyHead }}
-                  >
-                    {tier.name}
-                  </h3>
+                <h3
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) =>
+                    onUpdateTierTitle && onUpdateTierTitle(tier.id, e.currentTarget.innerText.trim())
+                  }
+                  className="text-sm sm:text-base font-black tracking-tight text-white mb-2 outline-none"
+                  style={{ fontFamily: theme.fontFamilyHead }}
+                >
+                  {tier.name}
+                </h3>
 
+                {/* Price and Quotas */}
+                <div className="p-2 sm:p-2.5 rounded-lg bg-black/40 border border-white/10 mb-3">
                   <div
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => {
-                      const raw = e.currentTarget.innerText.replace(/[^0-9]/g, '');
-                      const parsed = parseInt(raw, 10);
-                      if (!isNaN(parsed) && onUpdateTierPrice) {
-                        onUpdateTierPrice(tier.id, parsed);
-                      }
+                      const num = parseInt(e.currentTarget.innerText.replace(/\D/g, ''), 10) || 0;
+                      onUpdateTierPrice && onUpdateTierPrice(tier.id, num);
                     }}
-                    className={`${
-                      isMobile ? 'text-base sm:text-lg' : 'text-xl sm:text-2xl'
-                    } font-black tracking-tight shrink-0`}
-                    style={{ color: theme.primaryColor }}
+                    className="text-lg sm:text-xl md:text-2xl font-black tracking-tight outline-none"
+                    style={{ color: tier.highlighted ? theme.primaryColor : '#FFFFFF' }}
                   >
                     {formatCurrencyBRL(tier.price)}
                   </div>
+                  <div className="flex items-center justify-between text-[10px] text-neutral-400 mt-0.5">
+                    <span>Cotas disponíveis:</span>
+                    <span
+                      contentEditable
+                      suppressContentEditableWarning
+                      onBlur={(e) => {
+                        const q = parseInt(e.currentTarget.innerText.replace(/\D/g, ''), 10) || 1;
+                        onUpdateTierQuotas && onUpdateTierQuotas(tier.id, q);
+                      }}
+                      className="font-bold text-neutral-200 outline-none"
+                    >
+                      {tier.quotasAvailable} {tier.quotasAvailable === 1 ? 'única' : 'disponíveis'}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Deliverables Checklist */}
-                <div className="space-y-1 mt-1.5 text-xs">
-                  {tier.deliverables.slice(0, deliverableLimit).map((item, dIdx) => (
-                    <div key={dIdx} className="flex items-start gap-1.5 text-neutral-200 leading-tight">
-                      <div
-                        className="mt-0.5 p-0.5 rounded-full shrink-0"
-                        style={{
-                          backgroundColor: `${theme.primaryColor}33`,
-                          color: theme.primaryColor,
-                        }}
-                      >
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
-                      </div>
-                      <span className="text-[9.5px] sm:text-[10.5px] leading-tight truncate">{item}</span>
+                {/* Deliverables List */}
+                {showDeliverables && (
+                  <div className="space-y-1.5 text-[10px] sm:text-[10.5px]">
+                    <div className="flex items-center justify-between text-neutral-400 text-[9px] uppercase font-bold mb-1">
+                      <span>Contrapartidas</span>
+                      {onAddDeliverable && (
+                        <button
+                          type="button"
+                          onClick={() => onAddDeliverable(tier.id, 'Nova contrapartida da cota')}
+                          className="no-print text-amber-400 hover:text-amber-300 flex items-center gap-0.5 cursor-pointer font-normal"
+                        >
+                          <Plus className="w-2.5 h-2.5" /> <span>Adicionar</span>
+                        </button>
+                      )}
                     </div>
-                  ))}
-                </div>
+
+                    {tier.deliverables.map((del, dIdx) => (
+                      <div
+                        key={dIdx}
+                        className="group/del flex items-start gap-1.5 text-neutral-200 leading-tight"
+                      >
+                        {showIcons && (
+                          <Check
+                            className="w-3 h-3 shrink-0 mt-0.5"
+                            style={{ color: theme.primaryColor }}
+                          />
+                        )}
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) => {
+                            if (tier.deliverables) {
+                              tier.deliverables[dIdx] = e.currentTarget.innerText.trim();
+                            }
+                          }}
+                          className="flex-1 outline-none"
+                        >
+                          {del}
+                        </span>
+                        {onRemoveDeliverable && (
+                          <button
+                            type="button"
+                            onClick={() => onRemoveDeliverable(tier.id, dIdx)}
+                            title="Remover contrapartida"
+                            className="opacity-0 group-hover/del:opacity-100 p-0.5 text-neutral-500 hover:text-red-400 transition-opacity cursor-pointer shrink-0"
+                          >
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-          );
-        })}
+          ))}
+        </div>
+
+        {/* Custom Balloons Added by User on Slide 5 */}
+        {data.customBlocksSlide5 && data.customBlocksSlide5.length > 0 && (
+          <div className="grid gap-3 pt-2 grid-cols-1 sm:grid-cols-2">
+            {data.customBlocksSlide5.map((b) => (
+              <div
+                key={b.id}
+                className="group/cb relative p-3 rounded-xl border backdrop-blur-md shadow-lg"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.cardBorder,
+                }}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => onUpdateCustomBlock?.(b.id, 'title', e.currentTarget.innerText.trim())}
+                    className="text-xs font-bold uppercase tracking-wider outline-none"
+                    style={{ color: theme.primaryColor }}
+                  >
+                    {b.title}
+                  </span>
+                  {onRemoveCustomBlock && (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveCustomBlock(b.id)}
+                      title="Excluir este balão"
+                      className="p-1 rounded text-red-400 hover:text-red-200 hover:bg-red-500/20 transition-all cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <p
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => onUpdateCustomBlock?.(b.id, 'content', e.currentTarget.innerText.trim())}
+                  className="text-xs text-neutral-200 outline-none leading-snug"
+                >
+                  {b.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Footer Note */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 pt-2.5 border-t border-white/10 text-[11px] text-neutral-400">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: theme.primaryColor }} />
-          <span>
-            Os valores acima contemplam exclusividade de segmento e relatórios de métricas pós-evento.
-          </span>
-        </div>
-        <div className="font-mono">
-          LÂMINA 05 / 06
+      {/* Restoration Toolbar */}
+      <div className="no-print relative z-10 flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-white/10 text-[9px] sm:text-[10px] text-neutral-400">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {onAddCustomBlock && (
+            <button
+              onClick={handleCreateBlock}
+              className="px-2 py-0.5 rounded bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-white/10 flex items-center gap-1 cursor-pointer"
+            >
+              <Sparkles className="w-3 h-3 text-amber-400" />
+              <span>+ Novo Balão nas Cotas</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
