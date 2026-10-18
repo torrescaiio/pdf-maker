@@ -1073,26 +1073,72 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
 
             <div className="space-y-1.5">
               {eventData.tiers?.map((t) => (
-                <div key={t.id} className="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-white block">{t.name}</span>
-                    <span className="text-[10px] text-amber-400">
-                      R$ {t.price?.toLocaleString('pt-BR')} · {t.quotasAvailable} cotas
-                    </span>
+                <div key={t.id} className="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-white block">{t.name}</span>
+                      <span className="text-[10px] text-amber-400">
+                        R$ {t.price?.toLocaleString('pt-BR')} · {t.quotasAvailable} cotas
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEventData((prev) => ({
+                            ...prev,
+                            tiers: prev.tiers.map((item) =>
+                              item.id === t.id ? { ...item, hideBadge: !item.hideBadge } : item
+                            ),
+                          }));
+                          showToast(t.hideBadge ? 'Badge exibida!' : 'Badge excluída!');
+                        }}
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1 cursor-pointer ${
+                          t.hideBadge
+                            ? 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10'
+                            : 'border-red-500/30 text-red-300 bg-red-500/10'
+                        }`}
+                      >
+                        {t.hideBadge ? '+ Badge' : 'Excluir Badge'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEventData((prev) => ({
+                            ...prev,
+                            tiers: prev.tiers.filter((item) => item.id !== t.id),
+                          }));
+                          showToast(`Cota ${t.name} excluída!`);
+                        }}
+                        className="p-1 rounded text-neutral-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+                        title="Excluir Cota"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEventData((prev) => ({
-                        ...prev,
-                        tiers: prev.tiers.filter((item) => item.id !== t.id),
-                      }));
-                      showToast(`Cota ${t.name} excluída!`);
-                    }}
-                    className="p-1 rounded text-neutral-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+
+                  {/* Input para editar o texto da Badge se estiver ativa */}
+                  {!t.hideBadge && (
+                    <div className="flex items-center gap-1.5 pt-1 border-t border-neutral-800">
+                      <span className="text-[9px] text-neutral-400 shrink-0">Texto da Badge:</span>
+                      <input
+                        type="text"
+                        value={t.badge || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEventData((prev) => ({
+                            ...prev,
+                            tiers: prev.tiers.map((item) =>
+                              item.id === t.id ? { ...item, badge: val } : item
+                            ),
+                          }));
+                        }}
+                        placeholder="Ex: PATROCÍNIO EXCLUSIVO"
+                        className="flex-1 bg-neutral-950 border border-neutral-700 rounded px-2 py-0.5 text-[10px] text-amber-300 focus:border-amber-400 outline-none"
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

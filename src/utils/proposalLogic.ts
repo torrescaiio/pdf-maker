@@ -509,8 +509,10 @@ export const defaultEventData: EventData = {
   customBlocksSlide4: [],
 
   // Lâmina 5: Cotas
+  tiersBadge: 'Investimento & Retorno',
   tiersTitle: 'COTAS DE PATROCÍNIO & RETORNO',
   tiersSubtitle: 'Posicione sua marca no centro da experiência com entrega garantida de valor, visibilidade e ROI.',
+  showTiersBadge: true,
   showTiersTitle: true,
   showTierBadge: true,
   showTierDeliverables: true,
@@ -1064,8 +1066,8 @@ export function generateSingleFileHtml(
   <!-- Lâmina 5 -->
   <section class="slide" style="background: ${theme.bgGradient};">
     <div>
-      <span class="badge">Investimento & Contrapartidas</span>
-      <h2 style="font-family: ${theme.fontFamilyHead}; font-size: 2.5vw; margin-top: 0.5vw;">${data.tiersTitle}</h2>
+      ${data.showTiersBadge !== false ? `<span class="badge">${data.tiersBadge || 'Investimento & Retorno'}</span>` : ''}
+      ${data.showTiersTitle !== false ? `<h2 style="font-family: ${theme.fontFamilyHead}; font-size: 2.5vw; margin-top: 0.5vw;">${data.tiersTitle}</h2>` : ''}
     </div>
     <div style="display: grid; grid-template-columns: repeat(${data.tiers.length}, 1fr); gap: 1.2vw;">
       ${data.tiers
@@ -1073,7 +1075,7 @@ export function generateSingleFileHtml(
           (tier) => `
         <div class="card" style="${tier.highlighted ? `border: 2px solid ${theme.primaryColor}; box-shadow: 0 0 30px rgba(212,175,55,0.25);` : ''} display: flex; flex-direction: column; justify-content: space-between;">
           <div>
-            ${data.showTierBadge !== false ? `<span style="font-size: 0.75vw; font-weight: 700; color: ${tier.highlighted ? theme.primaryColor : theme.textMuted}; text-transform: uppercase;">${tier.badge}</span>` : ''}
+            ${data.showTierBadge !== false && !tier.hideBadge ? `<span style="font-size: 0.75vw; font-weight: 700; color: ${tier.highlighted ? theme.primaryColor : theme.textMuted}; text-transform: uppercase;">${tier.badge}</span>` : ''}
             <h3 style="font-size: 1.4vw; font-weight: 800; margin-top: 0.2vw;">${tier.name}</h3>
             <div style="margin: 0.8vw 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8vw;">
               <span style="font-size: 1.8vw; font-weight: 900; color: ${theme.primaryColor};">${formatCurrencyBRL(tier.price)}</span>

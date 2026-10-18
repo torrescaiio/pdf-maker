@@ -6,6 +6,7 @@ export interface SponsorshipTier {
   quotasAvailable: number;
   highlighted?: boolean;
   deliverables: string[];
+  hideBadge?: boolean;
 }
 
 export interface ExperiencePillar {
@@ -99,10 +100,12 @@ export interface EventData {
   customBlocksSlide4?: CustomSlideBlock[];
 
   // Lâmina 5: Cotas
+  tiersBadge?: string;
   tiersTitle: string;
   tiersSubtitle: string;
   tiers: SponsorshipTier[];
   showTiersTitle?: boolean;
+  showTiersBadge?: boolean;
   showTierBadge?: boolean;
   showTierDeliverables?: boolean;
   showIconsSlide5?: boolean;

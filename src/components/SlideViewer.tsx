@@ -136,6 +136,20 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
     }));
   };
 
+  const handleUpdateTierBadge = (tierId: string, badge: string) => {
+    setEventData((prev) => ({
+      ...prev,
+      tiers: prev.tiers.map((t) => (t.id === tierId ? { ...t, badge } : t)),
+    }));
+  };
+
+  const handleUpdateTier = (tierId: string, field: keyof SponsorshipTier, value: any) => {
+    setEventData((prev) => ({
+      ...prev,
+      tiers: prev.tiers.map((t) => (t.id === tierId ? { ...t, [field]: value } : t)),
+    }));
+  };
+
   const handleToggleBlock = (field: keyof EventData, show: boolean) => {
     setEventData((prev) => ({
       ...prev,
@@ -348,6 +362,8 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
         onUpdateTierPrice={handleUpdateTierPrice}
         onUpdateTierQuotas={handleUpdateTierQuotas}
         onUpdateTierTitle={handleUpdateTierTitle}
+        onUpdateTierBadge={handleUpdateTierBadge}
+        onUpdateTier={handleUpdateTier}
         onToggleBlock={handleToggleBlock}
         onAddTier={handleAddTier}
         onRemoveTier={handleRemoveTier}

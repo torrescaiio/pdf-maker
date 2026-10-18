@@ -23,6 +23,8 @@ interface SlideProps {
   onUpdateTierPrice?: (tierId: string, price: number) => void;
   onUpdateTierQuotas?: (tierId: string, quotas: number) => void;
   onUpdateTierTitle?: (tierId: string, name: string) => void;
+  onUpdateTierBadge?: (tierId: string, badge: string) => void;
+  onUpdateTier?: (tierId: string, field: keyof SponsorshipTier, value: any) => void;
   onToggleBlock?: (field: keyof EventData, show: boolean) => void;
   onAddTier?: (tier: SponsorshipTier) => void;
   onRemoveTier?: (tierId: string) => void;
@@ -41,6 +43,8 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
   onUpdateTierPrice,
   onUpdateTierQuotas,
   onUpdateTierTitle,
+  onUpdateTierBadge,
+  onUpdateTier,
   onToggleBlock,
   onAddTier,
   onRemoveTier,
@@ -120,7 +124,11 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
       <div className="relative z-10 flex items-start justify-between border-b border-white/10 pb-2">
         <div>
           <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border mb-1 backdrop-blur-md"
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={handleBlur('tiersBadge')}
+            title="Clique para editar este título / balão"
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border mb-1 backdrop-blur-md outline-none hover:border-amber-400 cursor-text"
             style={{
               borderColor: `${theme.primaryColor}55`,
               backgroundColor: 'rgba(0,0,0,0.4)',
@@ -128,7 +136,7 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
             }}
           >
             {showIcons && <Crown className="w-3 h-3" />}
-            Investimento & Retorno
+            {data.tiersBadge || 'Investimento & Retorno'}
           </span>
           {showTitle && (
             <h2
@@ -225,14 +233,56 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
               )}
 
               <div>
-                {/* Header of Tier */}
+                {/* Header of Tier (Badge e Categoria) */}
                 {showBadge && (
-                  <div className="flex items-center gap-1.5 mb-1 text-[9px] font-bold uppercase tracking-wider">
-                    {showIcons && tier.highlighted && <Crown className="w-3 h-3 text-amber-400" />}
-                    <span style={{ color: tier.highlighted ? theme.primaryColor : '#a1a1aa' }}>
-                      {tier.badge}
-                    </span>
-                  </div>
+                  <>
+                    {!tier.hideBadge ? (
+                      <div className="group/badge relative flex items-center gap-1.5 mb-1 text-[9px] font-bold uppercase tracking-wider">
+                        {showIcons && tier.highlighted && <Crown className="w-3 h-3 text-amber-400 shrink-0" />}
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) => {
+                            const val = e.currentTarget.innerText.trim();
+                            if (onUpdateTierBadge) {
+                              onUpdateTierBadge(tier.id, val);
+                            } else if (onUpdateTier) {
+                              onUpdateTier(tier.id, 'badge', val);
+                            }
+                          }}
+                          title="Clique para editar este texto (ex: PATROCÍNIO EXCLUSIVO, COTA MASTER, etc.)"
+                          className="outline-none hover:ring-1 hover:ring-amber-400/60 rounded px-1 py-0.5 transition-all cursor-text font-bold"
+                          style={{ color: tier.highlighted ? theme.primaryColor : '#a1a1aa' }}
+                        >
+                          {tier.badge || 'PATROCÍNIO EXCLUSIVO'}
+                        </span>
+                        {onUpdateTier && (
+                          <button
+                            type="button"
+                            onClick={() => onUpdateTier(tier.id, 'hideBadge', true)}
+                            title="Excluir este balão / badge"
+                            className="no-print opacity-0 group-hover/badge:opacity-100 p-0.5 rounded text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-opacity cursor-pointer"
+                          >
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      onUpdateTier && (
+                        <div className="mb-1">
+                          <button
+                            type="button"
+                            onClick={() => onUpdateTier(tier.id, 'hideBadge', false)}
+                            title="Readicionar badge / balão superior"
+                            className="no-print inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 border border-white/10 transition-colors cursor-pointer"
+                          >
+                            <Plus className="w-2.5 h-2.5 text-amber-400" />
+                            <span>+ Badge</span>
+                          </button>
+                        </div>
+                      )
+                    )}
+                  </>
                 )}
 
                 <h3
@@ -241,7 +291,7 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
                   onBlur={(e) =>
                     onUpdateTierTitle && onUpdateTierTitle(tier.id, e.currentTarget.innerText.trim())
                   }
-                  className="text-sm sm:text-base font-black tracking-tight text-white mb-2 outline-none"
+                  className="text-sm sm:text-base font-black tracking-tight text-white mb-2 outline-none hover:ring-1 hover:ring-amber-400/50 rounded px-1 transition-all cursor-text"
                   style={{ fontFamily: theme.fontFamilyHead }}
                 >
                   {tier.name}
@@ -385,6 +435,51 @@ export const Slide5Tiers: React.FC<SlideProps> = ({
       {/* Restoration Toolbar */}
       <div className="no-print relative z-10 flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-white/10 text-[9px] sm:text-[10px] text-neutral-400">
         <div className="flex items-center gap-1.5 flex-wrap">
+          {(!showTitle || !showBadge || !showDeliverables || data.tiers.some((t) => t.hideBadge)) && onToggleBlock && (
+            <>
+              {!showTitle && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showTiersTitle', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Título das Cotas</span>
+                </button>
+              )}
+              {!showBadge && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showTierBadge', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Badges das Cotas</span>
+                </button>
+              )}
+              {!showDeliverables && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showTierDeliverables', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Contrapartidas</span>
+                </button>
+              )}
+              {data.tiers.some((t) => t.hideBadge) && onUpdateTier && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    data.tiers.forEach((t) => {
+                      if (t.hideBadge) onUpdateTier(t.id, 'hideBadge', false);
+                    });
+                  }}
+                  className="px-2 py-0.5 rounded bg-neutral-800/90 text-amber-300 hover:text-white border border-amber-400/30 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Restaurar Badges Excluídas</span>
+                </button>
+              )}
+            </>
+          )}
+
           {onAddCustomBlock && (
             <button
               onClick={handleCreateBlock}
