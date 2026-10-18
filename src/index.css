@@ -78,6 +78,22 @@
     background: #09090b !important;
     color: #ffffff !important;
     height: auto !important;
+    overflow: visible !important;
+  }
+
+  #root,
+  .app-root-container,
+  main,
+  .slide-display-scroll-area {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    gap: 0 !important;
   }
 
   /* Hide everything marked no-print */
@@ -90,6 +106,21 @@
   button,
   .print-controls {
     display: none !important;
+  }
+
+  .slide-wrapper-print {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    display: block !important;
+    overflow: hidden !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   /* Base slide container print pagination & isolation */
@@ -108,6 +139,7 @@
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
+    aspect-ratio: auto !important;
   }
 
   /* Remove interactive outlines when printing */

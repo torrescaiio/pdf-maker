@@ -20,6 +20,8 @@ export interface AttractionCard {
   description: string;
   imageUrl: string;
   stats: string;
+  hideImage?: boolean;
+  hideTag?: boolean;
 }
 
 export interface CustomSlideBlock {
@@ -91,6 +93,7 @@ export interface EventData {
   attractions: AttractionCard[];
   structureMetrics: { value: string; label: string }[];
   showAttractions?: boolean;
+  showAttractionPhotos?: boolean;
   showStructureMetrics?: boolean;
   showIconsSlide4?: boolean;
   customBlocksSlide4?: CustomSlideBlock[];

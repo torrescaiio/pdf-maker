@@ -45,6 +45,8 @@ interface SlideViewerProps {
   currentSlide: number;
   setCurrentSlide: (slide: number) => void;
   onPrint: () => void;
+  onDirectPdfExport?: () => void;
+  isExportingPdf?: boolean;
 }
 
 export const SlideViewer: React.FC<SlideViewerProps> = ({
@@ -62,6 +64,8 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
   currentSlide,
   setCurrentSlide,
   onPrint,
+  onDirectPdfExport,
+  isExportingPdf = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showMediaModal, setShowMediaModal] = useState(false);
@@ -102,8 +106,8 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
 
   const handleUpdateAttraction = (
     index: number,
-    field: 'title' | 'description' | 'stats' | 'tag',
-    value: string
+    field: keyof AttractionCard,
+    value: any
   ) => {
     setEventData((prev) => ({
       ...prev,
@@ -501,13 +505,14 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
 
           {/* Quick PDF button */}
           <button
-            onClick={onPrint}
-            title="Exportar PDF de Alta Resolução"
-            className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-neutral-950 transition-all hover:brightness-110 active:scale-95"
+            onClick={onDirectPdfExport || onPrint}
+            disabled={isExportingPdf}
+            title="Baixar PDF de Alta Fidelidade (100% Idêntico à Tela)"
+            className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-neutral-950 transition-all hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-60 shadow-md"
             style={{ backgroundColor: theme.primaryColor }}
           >
             <Printer className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span className="hidden sm:inline">Exportar PDF</span>
+            <span>{isExportingPdf ? 'Gerando PDF...' : 'Exportar PDF'}</span>
           </button>
         </div>
       </header>
@@ -529,7 +534,8 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
       {/* Main Slides Display Area */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-8 flex flex-col items-center gap-12"
+        id="slide-display-scroll-area"
+        className="slide-display-scroll-area flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-8 flex flex-col items-center gap-12"
       >
         {viewMode === 'all' ? (
           // View all 6 slides in continuous scroll
@@ -557,52 +563,75 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
               </div>
 
               {/* The Slide Container */}
-              <div className="w-full rounded-2xl overflow-hidden shadow-2xl border border-neutral-800/80 transition-all hover:border-neutral-700">
+              <div
+                id={`slide-capture-node-${slide.id}`}
+                className="slide-wrapper-print w-full rounded-2xl overflow-hidden shadow-2xl border border-neutral-800/80 transition-all hover:border-neutral-700"
+              >
                 {slide.component}
               </div>
             </div>
           ))
         ) : (
           // Single Slide View
-          <div
-            className="w-full flex flex-col items-center my-auto transition-all duration-300"
-            style={{
-              maxWidth: `${containerMaxWidth}px`,
-            }}
-          >
-            {/* Header info */}
-            <div className="no-print w-full flex items-center justify-between mb-2 text-xs text-neutral-400 font-mono px-2">
-              <span className="flex items-center gap-2 font-semibold">
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: theme.primaryColor }}
-                />
-                LÂMINA {currentSlide + 1} DE 06: {slideList[currentSlide].title.toUpperCase()}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
-                  disabled={currentSlide === 0}
-                  className="p-1 rounded bg-neutral-800 hover:bg-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span>{currentSlide + 1} / 6</span>
-                <button
-                  onClick={() => setCurrentSlide(Math.min(5, currentSlide + 1))}
-                  disabled={currentSlide === 5}
-                  className="p-1 rounded bg-neutral-800 hover:bg-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+          <>
+            <div
+              className="w-full flex flex-col items-center my-auto transition-all duration-300"
+              style={{
+                maxWidth: `${containerMaxWidth}px`,
+              }}
+            >
+              {/* Header info */}
+              <div className="no-print w-full flex items-center justify-between mb-2 text-xs text-neutral-400 font-mono px-2">
+                <span className="flex items-center gap-2 font-semibold">
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: theme.primaryColor }}
+                  />
+                  LÂMINA {currentSlide + 1} DE 06: {slideList[currentSlide].title.toUpperCase()}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+                    disabled={currentSlide === 0}
+                    className="p-1 rounded bg-neutral-800 hover:bg-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span>{currentSlide + 1} / 6</span>
+                  <button
+                    onClick={() => setCurrentSlide(Math.min(5, currentSlide + 1))}
+                    disabled={currentSlide === 5}
+                    className="p-1 rounded bg-neutral-800 hover:bg-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Slide Component */}
+              <div
+                id={`slide-capture-node-${currentSlide + 1}`}
+                className="slide-wrapper-print w-full rounded-2xl overflow-hidden shadow-2xl border border-neutral-800/80"
+              >
+                {slideList[currentSlide].component}
               </div>
             </div>
 
-            {/* Slide Component */}
-            <div className="w-full rounded-2xl overflow-hidden shadow-2xl border border-neutral-800/80">
-              {slideList[currentSlide].component}
+            {/* Print-only container for all remaining slides if printed in single mode */}
+            <div className="hidden print:block w-full">
+              {slideList
+                .filter((s) => s.id !== currentSlide + 1)
+                .map((slide) => (
+                  <div
+                    key={`print-${slide.id}`}
+                    id={`slide-capture-node-${slide.id}`}
+                    className="slide-wrapper-print w-full"
+                  >
+                    {slide.component}
+                  </div>
+                ))}
             </div>
-          </div>
+          </>
         )}
       </div>
 

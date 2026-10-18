@@ -51,8 +51,15 @@ interface SidebarProps {
   format: LayoutFormat;
   setFormat: (format: LayoutFormat) => void;
   onPrint: () => void;
+  onDirectPdfExport?: () => void;
+  isExportingPdf?: boolean;
   currentSlideIndex: number;
   setCurrentSlideIndex: (index: number) => void;
+  isSaved?: boolean;
+  lastSavedTime?: string | null;
+  onResetProject?: () => void;
+  onExportBackup?: () => void;
+  onImportBackup?: (file: File) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -65,6 +72,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   format,
   setFormat,
   onPrint,
+  onDirectPdfExport,
+  isExportingPdf = false,
+  isSaved = true,
+  lastSavedTime = null,
+  onResetProject,
+  onExportBackup,
+  onImportBackup,
 }) => {
   const [activeTab, setActiveTab] = useState<'visual' | 'baloes' | 'dados' | 'midia' | 'cotas'>('visual');
   const [copiedSummary, setCopiedSummary] = useState(false);
@@ -343,6 +357,75 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
           </div>
         </div>
 
+        {/* Status de Salvamento Automático & Backup */}
+        <div className="flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 shadow-inner">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                isSaved
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]'
+                  : 'bg-amber-400 animate-pulse'
+              }`}
+            />
+            <span className={`text-[10.5px] truncate font-medium ${isSaved ? 'text-emerald-300' : 'text-amber-300'}`}>
+              {isSaved ? 'Alterações salvas' : 'Salvando...'}
+            </span>
+            {lastSavedTime && isSaved && (
+              <span className="text-neutral-500 font-mono text-[9.5px] truncate hidden sm:inline">
+                • {lastSavedTime}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0">
+            {onExportBackup && (
+              <button
+                type="button"
+                onClick={onExportBackup}
+                title="Baixar cópia de segurança em arquivo JSON no seu computador"
+                className="px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700 text-[10px] font-semibold transition-colors cursor-pointer"
+              >
+                Backup .json
+              </button>
+            )}
+            {onImportBackup && (
+              <>
+                <input
+                  type="file"
+                  id="json-backup-input"
+                  accept=".json,application/json"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      onImportBackup(file);
+                      e.target.value = '';
+                    }
+                  }}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('json-backup-input')?.click()}
+                  title="Restaurar proposta salva a partir de arquivo .json"
+                  className="px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700 text-[10px] font-semibold transition-colors cursor-pointer"
+                >
+                  Importar
+                </button>
+              </>
+            )}
+            {onResetProject && (
+              <button
+                type="button"
+                onClick={onResetProject}
+                title="Resetar projeto para os dados padrão originais"
+                className="p-1 rounded text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Format Selector: Mobile / iPhone (9:16), Widescreen (16:9), A4 Retrato */}
         <div className="bg-neutral-950/80 rounded-xl p-2.5 border border-neutral-800 space-y-2">
           <div className="flex items-center justify-between text-[11px] px-0.5">
@@ -411,14 +494,19 @@ ${eventData.tiers.map((t) => `• ${t.name} (${t.badge}): ${formatCurrencyBRL(t.
 
         {/* Primary Action Button: Export PDF */}
         <button
-          onClick={onPrint}
-          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-neutral-950 transition-all shadow-lg hover:brightness-110 active:scale-[0.98] cursor-pointer"
+          onClick={onDirectPdfExport || onPrint}
+          disabled={isExportingPdf}
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-neutral-950 transition-all shadow-lg hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-60"
           style={{
             background: `linear-gradient(135deg, ${theme.primaryColor} 0%, ${theme.secondaryColor} 100%)`,
           }}
         >
           <Printer className="w-4 h-4 stroke-[2.5]" />
-          <span>Exportar PDF ({formatConfigs[format].ratioLabel})</span>
+          <span>
+            {isExportingPdf
+              ? 'Gerando PDF de Alta Resolução...'
+              : `Exportar PDF (${formatConfigs[format].ratioLabel})`}
+          </span>
         </button>
 
         {/* Action hints and quick downloads */}

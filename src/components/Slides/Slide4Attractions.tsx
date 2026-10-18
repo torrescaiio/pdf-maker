@@ -11,6 +11,8 @@ import {
   Eye,
   EyeOff,
   X,
+  Image as ImageIcon,
+  ImageOff,
 } from 'lucide-react';
 import type { EventData, ThemeConfig, SlideImages, LayoutFormat, CustomSlideBlock, AttractionCard } from '../../types.ts';
 
@@ -20,7 +22,7 @@ interface SlideProps {
   images: SlideImages;
   format?: LayoutFormat;
   onUpdateText?: (field: keyof EventData, value: string) => void;
-  onUpdateAttraction?: (index: number, field: 'title' | 'description' | 'stats' | 'tag', value: string) => void;
+  onUpdateAttraction?: (index: number, field: keyof AttractionCard, value: any) => void;
   onUpdateImage?: (key: keyof SlideImages, value: string) => void;
   onToggleBlock?: (field: keyof EventData, show: boolean) => void;
   onAddAttraction?: (attraction: AttractionCard) => void;
@@ -119,8 +121,37 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
   const showIcons = !data.hideAllIcons && data.showIconsSlide4 !== false;
   const showAttractions = data.showAttractions !== false;
   const showMetrics = data.showStructureMetrics !== false;
+  const showAttractionPhotosGlobal = data.showAttractionPhotos !== false;
 
-  const hasExcludedBalloons = !showAttractions || !showMetrics;
+  const anyPhotoHidden = !showAttractionPhotosGlobal || data.attractions.some((a) => a.hideImage);
+  const anyTagHidden = data.attractions.some((a) => a.hideTag);
+
+  const hasExcludedBalloons = !showAttractions || !showMetrics || anyPhotoHidden || anyTagHidden;
+
+  const handleRestoreAllPhotos = () => {
+    if (onToggleBlock && !showAttractionPhotosGlobal) {
+      onToggleBlock('showAttractionPhotos', true);
+    }
+    if (onUpdateAttraction) {
+      data.attractions.forEach((_, i) => {
+        onUpdateAttraction(i, 'hideImage', false);
+      });
+    }
+  };
+
+  const handleRestoreAllTags = () => {
+    if (onUpdateAttraction) {
+      data.attractions.forEach((_, i) => {
+        onUpdateAttraction(i, 'hideTag', false);
+      });
+    }
+  };
+
+  const handleTogglePhotosMaster = () => {
+    if (onToggleBlock) {
+      onToggleBlock('showAttractionPhotos', !showAttractionPhotosGlobal);
+    }
+  };
 
   const attractionIcons = [
     <Music key="1" className="w-3.5 h-3.5" />,
@@ -208,9 +239,31 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
         {showAttractions && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                Atrações Principais ({data.attractions.length})
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  Atrações Principais ({data.attractions.length})
+                </span>
+                {onToggleBlock && (
+                  <button
+                    type="button"
+                    onClick={handleTogglePhotosMaster}
+                    title={showAttractionPhotosGlobal ? 'Apagar/ocultar todas as fotos e deixar apenas texto' : 'Exibir fotos das atrações'}
+                    className="no-print flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/40 hover:bg-neutral-800 border border-white/10 text-[9px] text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                  >
+                    {showAttractionPhotosGlobal ? (
+                      <>
+                        <ImageOff className="w-2.5 h-2.5 text-red-300" />
+                        <span>Ocultar Todas as Fotos</span>
+                      </>
+                    ) : (
+                      <>
+                        <ImageIcon className="w-2.5 h-2.5 text-amber-400" />
+                        <span>Exibir Fotos</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
               {onAddAttraction && (
                 <button
                   type="button"
@@ -234,122 +287,258 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
                   : 'grid-cols-1 md:grid-cols-3'
               }`}
             >
-              {data.attractions.map((attraction, idx) => (
-                <div
-                  key={idx}
-                  className={`group relative rounded-xl border backdrop-blur-md overflow-hidden flex transition-all hover:border-amber-400/40 shadow-lg ${
-                    isMobile ? 'flex-row h-28' : 'flex-col'
-                  }`}
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    borderColor: theme.cardBorder,
-                  }}
-                >
-                  {/* Delete Attraction button on hover */}
-                  {onRemoveAttraction && (
-                    <button
-                      type="button"
-                      onClick={() => onRemoveAttraction(idx)}
-                      title="Excluir este balão de atração"
-                      className="no-print absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 p-1 rounded-md text-red-400 hover:text-red-200 hover:bg-red-500/20 transition-all cursor-pointer z-30"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+              {data.attractions.map((attraction, idx) => {
+                const isPhotoVisible = showAttractionPhotosGlobal && !attraction.hideImage;
+                const isTagVisible = !attraction.hideTag;
 
-                  {/* Attraction Image */}
+                return (
                   <div
-                    className={`relative overflow-hidden shrink-0 group/img ${
-                      isMobile ? 'w-24 sm:w-28' : 'h-28 sm:h-32 md:h-36 w-full'
+                    key={idx}
+                    className={`group relative rounded-xl border backdrop-blur-md overflow-hidden flex transition-all hover:border-amber-400/40 shadow-lg ${
+                      isMobile
+                        ? isPhotoVisible
+                          ? 'flex-row h-28'
+                          : 'flex-col p-3'
+                        : 'flex-col'
                     }`}
+                    style={{
+                      backgroundColor: theme.cardBg,
+                      borderColor: theme.cardBorder,
+                    }}
                   >
-                    <input
-                      type="file"
-                      ref={fileInputRefs[idx]}
-                      accept="image/*"
-                      onChange={handleAttractionFileChange(idx)}
-                      className="hidden"
-                    />
-                    <img
-                      src={getAttractionImage(idx)}
-                      alt={attraction.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                    {/* Top action bar on hover */}
+                    <div className="no-print absolute top-1.5 right-1.5 z-30 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* If photo is hidden, show quick restore photo button */}
+                      {!isPhotoVisible && onUpdateAttraction && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!showAttractionPhotosGlobal && onToggleBlock) {
+                              onToggleBlock('showAttractionPhotos', true);
+                            }
+                            onUpdateAttraction(idx, 'hideImage', false);
+                          }}
+                          title="Restaurar / exibir foto desta atração"
+                          className="p-1 rounded-md bg-neutral-900/90 hover:bg-neutral-800 text-amber-300 border border-white/10 transition-all cursor-pointer text-[9px] flex items-center gap-1"
+                        >
+                          <Camera className="w-3 h-3" />
+                          <span className="hidden sm:inline">Foto</span>
+                        </button>
+                      )}
 
-                    {/* Camera Button */}
-                    <button
-                      type="button"
-                      onClick={() => fileInputRefs[idx]?.current?.click()}
-                      title="Trocar imagem pelo computador"
-                      className="no-print absolute top-2 right-2 p-1.5 rounded-full bg-black/70 hover:bg-black text-white border border-white/20 opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer shadow-md"
-                    >
-                      <Camera className="w-3 h-3 text-amber-400" />
-                    </button>
+                      {/* If tag is hidden, show quick restore tag button */}
+                      {!isTagVisible && onUpdateAttraction && (
+                        <button
+                          type="button"
+                          onClick={() => onUpdateAttraction(idx, 'hideTag', false)}
+                          title="Restaurar balão de tag"
+                          className="p-1 rounded-md bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10 transition-all cursor-pointer text-[9px] flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3 text-amber-400" />
+                          <span className="hidden sm:inline">Balão</span>
+                        </button>
+                      )}
 
-                    <div className="absolute bottom-2 left-2">
-                      <span
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8.5px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur-md border border-white/20"
-                        style={{ color: theme.primaryColor }}
-                      >
-                        {showIcons && attractionIcons[idx % attractionIcons.length]}
-                        {attraction.tag}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Attraction Content Body */}
-                  <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between min-w-0">
-                    <div>
-                      <h3
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) =>
-                          onUpdateAttraction &&
-                          onUpdateAttraction(idx, 'title', e.currentTarget.innerText.trim())
-                        }
-                        className="text-xs sm:text-sm font-bold tracking-tight text-white mb-0.5 truncate outline-none"
-                      >
-                        {attraction.title}
-                      </h3>
-                      <p
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) =>
-                          onUpdateAttraction &&
-                          onUpdateAttraction(idx, 'description', e.currentTarget.innerText.trim())
-                        }
-                        className="text-[10px] sm:text-[11px] text-neutral-300 leading-snug line-clamp-2 outline-none"
-                      >
-                        {attraction.description}
-                      </p>
+                      {/* Delete Attraction card */}
+                      {onRemoveAttraction && (
+                        <button
+                          type="button"
+                          onClick={() => onRemoveAttraction(idx)}
+                          title="Excluir este card de atração inteiro"
+                          className="p-1 rounded-md text-red-400 hover:text-red-200 bg-black/60 hover:bg-red-500/20 transition-all cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
 
-                    {/* Stats Footer */}
-                    <div className="mt-1.5 pt-1 border-t border-white/10 flex items-center justify-between text-[10px]">
-                      <div className="flex items-center gap-1 text-neutral-300 font-medium truncate">
-                        {showIcons && (
-                          <CheckCircle2
-                            className="w-3 h-3 shrink-0"
-                            style={{ color: theme.primaryColor }}
-                          />
+                    {/* Attraction Image (conditionally rendered) */}
+                    {isPhotoVisible && (
+                      <div
+                        className={`relative overflow-hidden shrink-0 group/img ${
+                          isMobile ? 'w-24 sm:w-28' : 'h-28 sm:h-32 md:h-36 w-full'
+                        }`}
+                      >
+                        <input
+                          type="file"
+                          ref={fileInputRefs[idx]}
+                          accept="image/*"
+                          onChange={handleAttractionFileChange(idx)}
+                          className="hidden"
+                        />
+                        <img
+                          src={getAttractionImage(idx)}
+                          alt={attraction.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/30" />
+
+                        {/* Top controls on Image: Camera (Change) & Delete Photo (Leave Text Only) */}
+                        <div className="no-print absolute top-2 right-2 flex items-center gap-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity z-20">
+                          {/* Trocar Foto */}
+                          <button
+                            type="button"
+                            onClick={() => fileInputRefs[idx]?.current?.click()}
+                            title="Trocar imagem pelo computador"
+                            className="p-1.5 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 transition-all cursor-pointer shadow-md"
+                          >
+                            <Camera className="w-3 h-3 text-amber-400" />
+                          </button>
+
+                          {/* Apagar Foto (Deixar apenas texto) */}
+                          {onUpdateAttraction && (
+                            <button
+                              type="button"
+                              onClick={() => onUpdateAttraction(idx, 'hideImage', true)}
+                              title="Apagar foto desta atração e deixar apenas o texto"
+                              className="p-1.5 rounded-full bg-black/80 hover:bg-red-600 text-white border border-white/20 transition-all cursor-pointer shadow-md group/delimg"
+                            >
+                              <ImageOff className="w-3 h-3 text-red-300 group-hover/delimg:text-white" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Balloon Tag on top of photo (Editable and Excludable) */}
+                        {isTagVisible && (
+                          <div className="absolute bottom-2 left-2 flex items-center gap-1 group/tag z-10 max-w-[85%]">
+                            <span
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) =>
+                                onUpdateAttraction &&
+                                onUpdateAttraction(idx, 'tag', e.currentTarget.innerText.trim())
+                              }
+                              title="Clique para editar o texto deste balão"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8.5px] font-bold uppercase tracking-wider bg-black/80 backdrop-blur-md border border-white/25 outline-none hover:border-amber-400 cursor-text shadow-sm"
+                              style={{ color: theme.primaryColor }}
+                            >
+                              {showIcons && attractionIcons[idx % attractionIcons.length]}
+                              <span>{attraction.tag || 'DESTAQUE'}</span>
+                            </span>
+
+                            {/* Exclude tag balloon button */}
+                            {onUpdateAttraction && (
+                              <button
+                                type="button"
+                                onClick={() => onUpdateAttraction(idx, 'hideTag', true)}
+                                title="Excluir este balão"
+                                className="no-print opacity-0 group-hover/tag:opacity-100 p-0.5 rounded-full bg-black/80 hover:bg-red-500 text-neutral-300 hover:text-white transition-opacity cursor-pointer shadow"
+                              >
+                                <X className="w-2.5 h-2.5" />
+                              </button>
+                            )}
+                          </div>
                         )}
-                        <span
+                      </div>
+                    )}
+
+                    {/* Attraction Content Body */}
+                    <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between min-w-0">
+                      <div>
+                        {/* If photo is hidden, show the balloon tag here if enabled, plus restore button */}
+                        {!isPhotoVisible && (
+                          <div className="flex items-center justify-between gap-1 mb-2">
+                            {isTagVisible ? (
+                              <div className="flex items-center gap-1 group/tag">
+                                <span
+                                  contentEditable
+                                  suppressContentEditableWarning
+                                  onBlur={(e) =>
+                                    onUpdateAttraction &&
+                                    onUpdateAttraction(idx, 'tag', e.currentTarget.innerText.trim())
+                                  }
+                                  title="Clique para editar o texto deste balão"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8.5px] font-bold uppercase tracking-wider bg-white/10 backdrop-blur-md border border-white/20 outline-none hover:border-amber-400 cursor-text"
+                                  style={{ color: theme.primaryColor }}
+                                >
+                                  {showIcons && attractionIcons[idx % attractionIcons.length]}
+                                  <span>{attraction.tag || 'DESTAQUE'}</span>
+                                </span>
+                                {onUpdateAttraction && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onUpdateAttraction(idx, 'hideTag', true)}
+                                    title="Excluir este balão"
+                                    className="no-print opacity-0 group-hover/tag:opacity-100 p-0.5 rounded-full bg-neutral-800 hover:bg-red-500 text-neutral-300 hover:text-white transition-opacity cursor-pointer"
+                                  >
+                                    <X className="w-2.5 h-2.5" />
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <div />
+                            )}
+
+                            {/* Restore photo button on card */}
+                            {onUpdateAttraction && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!showAttractionPhotosGlobal && onToggleBlock) {
+                                    onToggleBlock('showAttractionPhotos', true);
+                                  }
+                                  onUpdateAttraction(idx, 'hideImage', false);
+                                }}
+                                title="Restaurar foto para esta atração"
+                                className="no-print flex items-center gap-1 text-[9px] px-2 py-0.5 rounded bg-neutral-800/80 hover:bg-neutral-700 text-amber-300 border border-white/10 transition-colors cursor-pointer"
+                              >
+                                <Camera className="w-2.5 h-2.5" />
+                                <span>+ Foto</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        <h3
                           contentEditable
                           suppressContentEditableWarning
                           onBlur={(e) =>
                             onUpdateAttraction &&
-                            onUpdateAttraction(idx, 'stats', e.currentTarget.innerText.trim())
+                            onUpdateAttraction(idx, 'title', e.currentTarget.innerText.trim())
                           }
-                          className="truncate outline-none"
+                          className="text-xs sm:text-sm font-bold tracking-tight text-white mb-0.5 truncate outline-none"
                         >
-                          {attraction.stats}
-                        </span>
+                          {attraction.title}
+                        </h3>
+                        <p
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) =>
+                            onUpdateAttraction &&
+                            onUpdateAttraction(idx, 'description', e.currentTarget.innerText.trim())
+                          }
+                          className="text-[10px] sm:text-[11px] text-neutral-300 leading-snug line-clamp-3 outline-none"
+                        >
+                          {attraction.description}
+                        </p>
+                      </div>
+
+                      {/* Stats Footer */}
+                      <div className="mt-2 pt-1 border-t border-white/10 flex items-center justify-between text-[10px]">
+                        <div className="flex items-center gap-1 text-neutral-300 font-medium truncate">
+                          {showIcons && (
+                            <CheckCircle2
+                              className="w-3 h-3 shrink-0"
+                              style={{ color: theme.primaryColor }}
+                            />
+                          )}
+                          <span
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) =>
+                              onUpdateAttraction &&
+                              onUpdateAttraction(idx, 'stats', e.currentTarget.innerText.trim())
+                            }
+                            className="truncate outline-none"
+                          >
+                            {attraction.stats}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -502,9 +691,9 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
       {/* Restoration Toolbar */}
       <div className="no-print relative z-10 flex items-center justify-between flex-wrap gap-2 pt-1 text-[9px] sm:text-[10px] text-neutral-400">
         <div className="flex items-center gap-1.5 flex-wrap">
-          {hasExcludedBalloons && onToggleBlock && (
+          {hasExcludedBalloons && (
             <>
-              {!showAttractions && (
+              {!showAttractions && onToggleBlock && (
                 <button
                   onClick={() => onToggleBlock('showAttractions', true)}
                   className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
@@ -512,12 +701,34 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
                   <Plus className="w-2.5 h-2.5" /> <span>+ Balões de Atrações</span>
                 </button>
               )}
-              {!showMetrics && (
+              {!showMetrics && onToggleBlock && (
                 <button
                   onClick={() => onToggleBlock('showStructureMetrics', true)}
                   className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
                 >
                   <Plus className="w-2.5 h-2.5" /> <span>+ Métricas de Infraestrutura</span>
+                </button>
+              )}
+              {anyPhotoHidden && (
+                <button
+                  type="button"
+                  onClick={handleRestoreAllPhotos}
+                  className="px-2 py-0.5 rounded bg-neutral-800/90 text-amber-300 hover:text-white border border-amber-400/30 flex items-center gap-1 cursor-pointer shadow-sm"
+                  title="Restaurar todas as fotos de atrações"
+                >
+                  <Camera className="w-2.5 h-2.5 text-amber-400" />
+                  <span>+ Restaurar Fotos</span>
+                </button>
+              )}
+              {anyTagHidden && (
+                <button
+                  type="button"
+                  onClick={handleRestoreAllTags}
+                  className="px-2 py-0.5 rounded bg-neutral-800/90 text-amber-300 hover:text-white border border-amber-400/30 flex items-center gap-1 cursor-pointer shadow-sm"
+                  title="Restaurar todos os balões e tags das atrações"
+                >
+                  <Plus className="w-2.5 h-2.5 text-amber-400" />
+                  <span>+ Restaurar Balões de Tag</span>
                 </button>
               )}
             </>

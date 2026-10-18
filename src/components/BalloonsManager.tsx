@@ -10,6 +10,7 @@ import {
   Award,
   Sparkles,
   X,
+  Camera,
 } from 'lucide-react';
 import type { EventData, ThemeConfig, CustomSlideBlock } from '../types.ts';
 import { IconPicker } from '../utils/iconMap.tsx';
@@ -101,6 +102,35 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
     showToast('Balão personalizado removido!');
   };
 
+  const handleToggleAttractionPhoto = (idx: number) => {
+    setEventData((prev) => {
+      const willHide = !prev.attractions[idx]?.hideImage;
+      const nextAttractions = prev.attractions.map((a, i) =>
+        i === idx ? { ...a, hideImage: willHide } : a
+      );
+      return { ...prev, attractions: nextAttractions };
+    });
+    showToast('Foto da atração atualizada!');
+  };
+
+  const handleToggleAttractionTag = (idx: number) => {
+    setEventData((prev) => {
+      const willHide = !prev.attractions[idx]?.hideTag;
+      const nextAttractions = prev.attractions.map((a, i) =>
+        i === idx ? { ...a, hideTag: willHide } : a
+      );
+      return { ...prev, attractions: nextAttractions };
+    });
+    showToast('Balão de tag da atração atualizado!');
+  };
+
+  const handleUpdateAttractionTagText = (idx: number, tag: string) => {
+    setEventData((prev) => ({
+      ...prev,
+      attractions: prev.attractions.map((a, i) => (i === idx ? { ...a, tag } : a)),
+    }));
+  };
+
   const handleRestoreAllBalloons = () => {
     setEventData((prev) => ({
       ...prev,
@@ -130,6 +160,8 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
       showIconsSlide3: true,
       // Slide 4
       showAttractions: true,
+      showAttractionPhotos: true,
+      attractions: prev.attractions.map((a) => ({ ...a, hideImage: false, hideTag: false })),
       showStructureMetrics: true,
       showIconsSlide4: true,
       // Slide 5
@@ -739,10 +771,11 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
           </div>
 
           <div className="space-y-2 text-xs">
+            {/* Bloco Geral: Atrações Principais */}
             <div className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-800 bg-neutral-900/60">
               <div>
-                <span className="text-xs font-bold text-white block">Balão: Atrações Principais</span>
-                <span className="text-[10px] text-neutral-400">Grid com fotos, tags e estatísticas</span>
+                <span className="text-xs font-bold text-white block">Balão Geral: Atrações Principais</span>
+                <span className="text-[10px] text-neutral-400">Todo o grid de atrações</span>
               </div>
               <button
                 type="button"
@@ -758,7 +791,126 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-800 bg-neutral-900/60">
+            {/* Controle Mestre: Fotos das Atrações (Deixar apenas texto) */}
+            <div className="flex items-center justify-between p-2.5 rounded-lg border border-amber-500/20 bg-amber-950/20">
+              <div>
+                <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                  <Camera className="w-3.5 h-3.5 text-amber-400" />
+                  Fotos das Atrações
+                </span>
+                <span className="text-[10px] text-neutral-400">
+                  {eventData.showAttractionPhotos !== false
+                    ? 'Fotos ativas nos cards. Clique em "Ocultar Fotos" para deixar apenas texto.'
+                    : 'Fotos apagadas. Cards exibindo apenas os textos com diagramação limpa.'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleToggleBlock('showAttractionPhotos')}
+                className={`px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer ${
+                  eventData.showAttractionPhotos !== false
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500/30'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
+                }`}
+              >
+                {eventData.showAttractionPhotos !== false ? (
+                  <>
+                    <EyeOff className="w-2.5 h-2.5" />
+                    <span>Ocultar Fotos</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-2.5 h-2.5" />
+                    <span>Exibir Fotos</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Lista individual de atrações (Fotos e Balões/Tags) */}
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
+                Controle Individual por Atração ({eventData.attractions.length})
+              </span>
+              {eventData.attractions.map((attraction, idx) => (
+                <div
+                  key={idx}
+                  className="p-2.5 rounded-lg border border-neutral-800 bg-neutral-900/80 space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-xs truncate max-w-[200px]">
+                      {attraction.title || `Atração ${idx + 1}`}
+                    </span>
+                    <span className="text-[9px] font-mono text-amber-400/80">#{idx + 1}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-800 text-[10px]">
+                    {/* Botão Foto */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAttractionPhoto(idx)}
+                      className={`px-2 py-1 rounded border flex items-center gap-1 font-semibold cursor-pointer ${
+                        attraction.hideImage
+                          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+                          : 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20'
+                      }`}
+                    >
+                      {attraction.hideImage ? (
+                        <>
+                          <Plus className="w-2.5 h-2.5" />
+                          <span>Restaurar Foto</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-2.5 h-2.5" />
+                          <span>Apagar Foto (Apenas Texto)</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Botão Balão / Tag */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAttractionTag(idx)}
+                      className={`px-2 py-1 rounded border flex items-center gap-1 font-semibold cursor-pointer ${
+                        attraction.hideTag
+                          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+                          : 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20'
+                      }`}
+                    >
+                      {attraction.hideTag ? (
+                        <>
+                          <Plus className="w-2.5 h-2.5" />
+                          <span>+ Balão / Tag</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-2.5 h-2.5" />
+                          <span>Excluir Balão</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Input para editar o texto do balão de tag se estiver ativo */}
+                  {!attraction.hideTag && (
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span className="text-[9px] text-neutral-400 shrink-0">Texto do Balão:</span>
+                      <input
+                        type="text"
+                        value={attraction.tag || ''}
+                        onChange={(e) => handleUpdateAttractionTagText(idx, e.target.value)}
+                        placeholder="Ex: HEADLINER"
+                        className="flex-1 bg-neutral-950 border border-neutral-700 rounded px-2 py-0.5 text-[10px] text-amber-300 focus:border-amber-400 outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Métrica de Infraestrutura */}
+            <div className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-800 bg-neutral-900/60 mt-2">
               <div>
                 <span className="text-xs font-bold text-white block">Balão: Métricas de Infraestrutura</span>
                 <span className="text-[10px] text-neutral-400">Barra de m², palcos, wifi e logística</span>

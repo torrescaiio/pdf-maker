@@ -44,7 +44,12 @@ export function getDynamicPrintCss(format: LayoutFormat): string {
   return `@media print {
   @page {
     size: ${cfg.printPageSize};
-    margin: 0;
+    margin: 0 !important;
+  }
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
   html, body {
     margin: 0 !important;
@@ -53,9 +58,50 @@ export function getDynamicPrintCss(format: LayoutFormat): string {
     color: #ffffff !important;
     width: ${cfg.printWidth} !important;
     height: auto !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    color-adjust: exact !important;
+  }
+  #root,
+  .app-root-container,
+  main,
+  .slide-display-scroll-area {
+    width: ${cfg.printWidth} !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    gap: 0 !important;
+  }
+  .no-print,
+  .sidebar-controls,
+  header,
+  nav,
+  aside,
+  button,
+  .print-controls {
+    display: none !important;
+  }
+  .slide-wrapper-print {
+    width: ${cfg.printWidth} !important;
+    max-width: ${cfg.printWidth} !important;
+    min-width: ${cfg.printWidth} !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    display: block !important;
+    overflow: hidden !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
   .slide-container-print {
     width: ${cfg.printWidth} !important;
@@ -64,6 +110,7 @@ export function getDynamicPrintCss(format: LayoutFormat): string {
     min-height: ${cfg.printHeight} !important;
     max-width: ${cfg.printWidth} !important;
     max-height: ${cfg.printHeight} !important;
+    aspect-ratio: auto !important;
     page-break-after: always !important;
     break-after: page !important;
     page-break-inside: avoid !important;
@@ -74,6 +121,9 @@ export function getDynamicPrintCss(format: LayoutFormat): string {
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
 }`;
 }
@@ -453,6 +503,7 @@ export const defaultEventData: EventData = {
     { value: 'Wi-Fi 6', label: 'Conectividade dedicada' },
   ],
   showAttractions: true,
+  showAttractionPhotos: true,
   showStructureMetrics: true,
   showIconsSlide4: true,
   customBlocksSlide4: [],
@@ -703,12 +754,19 @@ export function generateSingleFileHtml(
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Space+Grotesk:wght@500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
     body {
       background-color: ${theme.bgColor};
       color: ${theme.textColor};
       font-family: ${theme.fontFamilyBody};
       -webkit-font-smoothing: antialiased;
+      margin: 0;
+      padding: 0;
     }
     .slide {
       width: ${isMobile ? '430px' : isA4 ? '680px' : '100vw'};
@@ -732,12 +790,13 @@ export function generateSingleFileHtml(
     @media print {
       @page {
         size: ${cfg.printPageSize};
-        margin: 0;
+        margin: 0 !important;
       }
       body {
         background: #000 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+        color-adjust: exact !important;
       }
       .slide {
         width: ${cfg.printWidth} !important;
@@ -747,9 +806,11 @@ export function generateSingleFileHtml(
         max-width: ${cfg.printWidth} !important;
         max-height: ${cfg.printHeight} !important;
         margin: 0 !important;
-        padding: 0.6in !important;
+        padding: ${isMobile ? '24px' : isA4 ? '32px' : '3.5vw'} !important;
         border-radius: 0 !important;
         box-shadow: none !important;
+        page-break-after: always !important;
+        break-after: page !important;
       }
       .no-print { display: none !important; }
     }
@@ -955,12 +1016,15 @@ export function generateSingleFileHtml(
     <div style="display: grid; grid-template-columns: repeat(${Math.min(data.attractions.length, 3)}, 1fr); gap: 1.5vw;">
       ${data.attractions
         .map(
-          (a) => `
+          (a) => {
+            const showImg = data.showAttractionPhotos !== false && !a.hideImage;
+            const showTag = !a.hideTag;
+            return `
         <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-          <img src="${a.imageUrl}" alt="${a.title}" style="width: 100%; height: 10vw; object-fit: cover;">
+          ${showImg ? `<img src="${a.imageUrl}" alt="${a.title}" style="width: 100%; height: 10vw; object-fit: cover;">` : ''}
           <div style="padding: 1vw; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
             <div>
-              <span style="font-size: 0.75vw; color: ${theme.primaryColor}; font-weight: 700; text-transform: uppercase;">${a.tag}</span>
+              ${showTag ? `<span style="font-size: 0.75vw; color: ${theme.primaryColor}; font-weight: 700; text-transform: uppercase; display: inline-block; margin-bottom: 0.2vw;">${a.tag || 'DESTAQUE'}</span>` : ''}
               <h3 style="font-size: 1.2vw; margin-top: 0.2vw;">${a.title}</h3>
               <p style="font-size: 0.85vw; color: ${theme.textMuted}; margin-top: 0.4vw;">${a.description}</p>
             </div>
@@ -968,7 +1032,8 @@ export function generateSingleFileHtml(
               ${a.stats}
             </div>
           </div>
-        </div>`
+        </div>`;
+          }
         )
         .join('')}
     </div>` : ''}
