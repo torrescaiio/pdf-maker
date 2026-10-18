@@ -13,6 +13,7 @@ import {
 import { exportSlidesToPdf, type ExportProgress } from './utils/pdfExport.ts';
 import {
   loadSavedProject,
+  loadSavedProjectFromIndexedDB,
   saveProject,
   clearSavedProject,
   exportProjectToJsonFile,
@@ -40,7 +41,37 @@ export default function App() {
   const [isExportingPdf, setIsExportingPdf] = useState<boolean>(false);
   const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null);
 
-  // Auto-save project state to localStorage on any edit
+  // Check if IndexedDB has more complete saved state (e.g. photos or higher quota persistence)
+  useEffect(() => {
+    loadSavedProjectFromIndexedDB().then((idbSaved) => {
+      if (idbSaved && (!initialSaved || idbSaved.updatedAt > initialSaved.updatedAt)) {
+        setEventData(idbSaved.eventData);
+        setTheme(idbSaved.theme);
+        setImages(idbSaved.images);
+        setLayoutFormat(idbSaved.format);
+        setIsSaved(true);
+        setLastSavedTime('Restaurado com segurança');
+      }
+    });
+  }, [initialSaved]);
+
+  // Manual save handler for instant on-demand save button
+  const handleManualSave = () => {
+    const ok = saveProject({
+      eventData,
+      theme,
+      images,
+      format: layoutFormat,
+    });
+    if (ok) {
+      setIsSaved(true);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setLastSavedTime(timeStr);
+    }
+  };
+
+  // Auto-save project state to localStorage and IndexedDB on any edit
   useEffect(() => {
     setIsSaved(false);
     const timer = setTimeout(() => {
@@ -246,6 +277,9 @@ export default function App() {
         onPrint={handlePrint}
         onDirectPdfExport={handleDirectPdfExport}
         isExportingPdf={isExportingPdf}
+        isSaved={isSaved}
+        lastSavedTime={lastSavedTime}
+        onManualSave={handleManualSave}
       />
 
       {/* Real-Time PDF Generation Progress Modal */}

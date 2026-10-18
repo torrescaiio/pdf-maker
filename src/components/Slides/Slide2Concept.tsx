@@ -93,12 +93,22 @@ export const Slide2Concept: React.FC<SlideProps> = ({
   };
 
   const showIcons = !data.hideAllIcons && data.showIconsSlide2 !== false;
+  const showConceptBadge = data.showConceptBadge !== false;
+  const showConceptTitle = data.showConceptTitle !== false;
   const showStory = data.showConceptStory !== false;
   const showManifesto = data.showManifesto !== false;
   const showImage = data.showConceptImage !== false;
+  const showConceptImageBadge = data.showConceptImageBadge !== false;
   const showPillars = data.showPillars !== false;
 
-  const hasExcludedBalloons = !showStory || !showManifesto || !showImage || !showPillars;
+  const hasExcludedBalloons =
+    !showConceptBadge ||
+    !showConceptTitle ||
+    !showStory ||
+    !showManifesto ||
+    !showImage ||
+    !showConceptImageBadge ||
+    !showPillars;
 
   const iconMap: Record<string, React.ReactNode> = {
     Sparkles: <Sparkles className="w-4 h-4" />,
@@ -133,28 +143,60 @@ export const Slide2Concept: React.FC<SlideProps> = ({
       {/* Header */}
       <div className="relative z-10 flex items-start justify-between border-b border-white/10 pb-2">
         <div>
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border mb-1 backdrop-blur-md"
-            style={{
-              borderColor: `${theme.primaryColor}55`,
-              backgroundColor: 'rgba(0,0,0,0.4)',
-              color: theme.primaryColor,
-            }}
-          >
-            {showIcons && <Sparkles className="w-3 h-3" />}
-            Conceito & Essência
-          </span>
-          <h2
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={handleBlur('conceptTitle')}
-            className={`${
-              isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
-            } font-black uppercase tracking-tight`}
-            style={{ fontFamily: theme.fontFamilyHead }}
-          >
-            {data.conceptTitle}
-          </h2>
+          {showConceptBadge && (
+            <div className="group/badge inline-flex items-center gap-1 mb-1">
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={handleBlur('conceptBadge')}
+                title="Clique para editar este texto"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border backdrop-blur-md outline-none hover:border-amber-400 cursor-text"
+                style={{
+                  borderColor: `${theme.primaryColor}55`,
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  color: theme.primaryColor,
+                }}
+              >
+                {showIcons && <Sparkles className="w-3 h-3" />}
+                {data.conceptBadge || 'Conceito & Essência'}
+              </span>
+              {onToggleBlock && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showConceptBadge', false)}
+                  title="Excluir este balão"
+                  className="no-print opacity-0 group-hover/badge:opacity-100 p-0.5 rounded text-neutral-400 hover:text-red-400 cursor-pointer"
+                >
+                  <Trash2 className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          )}
+          {showConceptTitle && (
+            <div className="group/title flex items-center gap-2">
+              <h2
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={handleBlur('conceptTitle')}
+                className={`${
+                  isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
+                } font-black uppercase tracking-tight`}
+                style={{ fontFamily: theme.fontFamilyHead }}
+              >
+                {data.conceptTitle}
+              </h2>
+              {onToggleBlock && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showConceptTitle', false)}
+                  title="Excluir título do conceito"
+                  className="no-print opacity-0 group-hover/title:opacity-100 p-0.5 rounded text-neutral-400 hover:text-red-400 cursor-pointer"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          )}
           <p
             contentEditable
             suppressContentEditableWarning
@@ -491,14 +533,40 @@ export const Slide2Concept: React.FC<SlideProps> = ({
                     </button>
                   )}
 
-                  <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur-md border border-white/20 text-white">
-                      Experiência 360°
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-300">
-                      Imersão Completa
-                    </span>
-                  </div>
+                  {showConceptImageBadge && (
+                    <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between group/ib z-20">
+                      <span
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={handleBlur('conceptImageBadge')}
+                        title="Clique para editar este balão"
+                        className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/80 backdrop-blur-md border border-white/25 text-white outline-none hover:border-amber-400 cursor-text shadow-sm"
+                      >
+                        {data.conceptImageBadge || 'Experiência 360°'}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={handleBlur('conceptImageSubtitle')}
+                          title="Clique para editar este subtítulo"
+                          className="text-[10px] font-mono text-neutral-300 outline-none hover:text-white cursor-text"
+                        >
+                          {data.conceptImageSubtitle || 'Imersão Completa'}
+                        </span>
+                        {onToggleBlock && (
+                          <button
+                            type="button"
+                            onClick={() => onToggleBlock('showConceptImageBadge', false)}
+                            title="Excluir este balão sobre a foto"
+                            className="no-print opacity-0 group-hover/ib:opacity-100 p-0.5 rounded bg-black/80 text-neutral-400 hover:text-red-400 transition-opacity cursor-pointer shadow"
+                          >
+                            <Trash2 className="w-2.5 h-2.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -647,6 +715,22 @@ export const Slide2Concept: React.FC<SlideProps> = ({
         <div className="flex items-center gap-1.5 flex-wrap">
           {hasExcludedBalloons && onToggleBlock && (
             <>
+              {!showConceptBadge && (
+                <button
+                  onClick={() => onToggleBlock('showConceptBadge', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Balão do Topo</span>
+                </button>
+              )}
+              {!showConceptTitle && (
+                <button
+                  onClick={() => onToggleBlock('showConceptTitle', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Título do Conceito</span>
+                </button>
+              )}
               {!showStory && (
                 <button
                   onClick={() => onToggleBlock('showConceptStory', true)}
@@ -669,6 +753,14 @@ export const Slide2Concept: React.FC<SlideProps> = ({
                   className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
                 >
                   <Plus className="w-2.5 h-2.5" /> <span>+ Foto de Conceito</span>
+                </button>
+              )}
+              {showImage && !showConceptImageBadge && (
+                <button
+                  onClick={() => onToggleBlock('showConceptImageBadge', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Balão sobre a Foto</span>
                 </button>
               )}
               {!showPillars && (

@@ -134,6 +134,10 @@ export const Slide3Audience: React.FC<SlideProps> = ({
   const showChannels = data.showMediaChannels !== false;
   const showDemographics = data.showDemographicsGender !== false;
 
+  const showAudienceBgPhoto = data.showAudienceBgPhoto !== false && Boolean(images.slide3Audience);
+  const showAudienceBadge = data.showAudienceBadge !== false;
+  const showAudienceTitle = data.showAudienceTitle !== false;
+
   const showIcons = !data.hideAllIcons && data.showIconsSlide3 !== false;
 
   const aspectClass = isMobile ? 'aspect-[9/16]' : isA4 ? 'aspect-[210/297]' : 'aspect-[16/9]';
@@ -145,7 +149,7 @@ export const Slide3Audience: React.FC<SlideProps> = ({
       } select-text text-white shadow-2xl transition-all`}
       style={{
         backgroundColor: theme.bgColor,
-        backgroundImage: images.slide3Audience
+        backgroundImage: showAudienceBgPhoto
           ? `linear-gradient(135deg, rgba(9, 9, 11, 0.94) 0%, rgba(15, 15, 20, 0.90) 100%), url('${images.slide3Audience}')`
           : theme.bgGradient,
         backgroundSize: 'cover',
@@ -173,25 +177,57 @@ export const Slide3Audience: React.FC<SlideProps> = ({
       {/* Header */}
       <div className="relative z-10 flex items-start justify-between border-b border-white/10 pb-2">
         <div>
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border mb-1 backdrop-blur-md"
-            style={{
-              borderColor: `${theme.primaryColor}55`,
-              backgroundColor: 'rgba(0,0,0,0.4)',
-              color: theme.primaryColor,
-            }}
-          >
-            {showIcons && <BarChart3 className="w-3 h-3" />}
-            Métricas de Audiência
-          </span>
-          <h2
-            className={`${
-              isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
-            } font-black uppercase tracking-tight`}
-            style={{ fontFamily: theme.fontFamilyHead }}
-          >
-            PÚBLICO QUALIFICADO & ALCANCE
-          </h2>
+          {showAudienceBadge && (
+            <div className="group/ab inline-flex items-center gap-1 mb-1">
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={handleBlur('audienceBadge')}
+                title="Clique para editar este texto"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border backdrop-blur-md outline-none hover:border-amber-400 cursor-text"
+                style={{
+                  borderColor: `${theme.primaryColor}55`,
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  color: theme.primaryColor,
+                }}
+              >
+                {showIcons && <BarChart3 className="w-3 h-3" />}
+                {data.audienceBadge || 'Métricas de Audiência'}
+              </span>
+              {onToggleBlock && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showAudienceBadge', false)}
+                  title="Excluir este balão"
+                  className="no-print opacity-0 group-hover/ab:opacity-100 p-0.5 rounded text-neutral-400 hover:text-red-400 cursor-pointer"
+                >
+                  <Trash2 className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          )}
+          {showAudienceTitle && (
+            <div className="group/at flex items-center gap-2">
+              <h2
+                className={`${
+                  isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
+                } font-black uppercase tracking-tight`}
+                style={{ fontFamily: theme.fontFamilyHead }}
+              >
+                PÚBLICO QUALIFICADO & ALCANCE
+              </h2>
+              {onToggleBlock && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showAudienceTitle', false)}
+                  title="Excluir título de audiência"
+                  className="no-print opacity-0 group-hover/at:opacity-100 p-0.5 rounded text-neutral-400 hover:text-red-400 cursor-pointer"
+                >
+                  <Trash2 className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          )}
           <p className="text-[10px] sm:text-xs text-neutral-400 mt-0.5 max-w-xl">
             Dados consolidados de público presente, projeção de mídia e perfil de consumo.
           </p>
@@ -210,6 +246,7 @@ export const Slide3Audience: React.FC<SlideProps> = ({
               </button>
             )}
             <button
+              type="button"
               onClick={() => bgInputRef.current?.click()}
               title="Trocar imagem de fundo desta lâmina pelo seu computador"
               className="px-2 py-0.5 rounded bg-black/40 hover:bg-neutral-800 border border-white/10 text-[9px] text-neutral-300 flex items-center gap-1 transition-colors cursor-pointer"
@@ -217,6 +254,29 @@ export const Slide3Audience: React.FC<SlideProps> = ({
               <Camera className="w-2.5 h-2.5 text-amber-400" />
               <span>Foto de Fundo</span>
             </button>
+            {onToggleBlock && (
+              showAudienceBgPhoto ? (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showAudienceBgPhoto', false)}
+                  title="Apagar foto de fundo (deixar gradiente limpo)"
+                  className="px-2 py-0.5 rounded bg-red-950/70 hover:bg-red-900 border border-red-500/30 text-[9px] text-red-200 flex items-center gap-1 cursor-pointer"
+                >
+                  <Trash2 className="w-2.5 h-2.5" />
+                  <span>Apagar Foto</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showAudienceBgPhoto', true)}
+                  title="Restaurar foto de fundo"
+                  className="px-2 py-0.5 rounded bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-500/30 text-[9px] text-emerald-200 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" />
+                  <span>+ Foto</span>
+                </button>
+              )
+            )}
           </div>
           <span className="font-semibold text-white/90">{data.name}</span>
           <div className="text-neutral-500">LÂMINA 03 / 06</div>
@@ -762,6 +822,36 @@ export const Slide3Audience: React.FC<SlideProps> = ({
         {/* Quick Toolbar for Re-adding Excluded Balloons and Adding Custom Balloons */}
         <div className="flex items-center justify-between flex-wrap gap-2 pt-1 text-[9px] sm:text-[10px] text-neutral-400">
           <div className="flex items-center gap-1.5 flex-wrap">
+            {!showAudienceBadge && onToggleBlock && (
+              <button
+                onClick={() => onToggleBlock('showAudienceBadge', true)}
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-neutral-800 text-amber-300 border border-white/10 text-[9px] cursor-pointer"
+              >
+                <Plus className="w-2.5 h-2.5" />
+                <span>+ Balão do Topo</span>
+              </button>
+            )}
+
+            {!showAudienceTitle && onToggleBlock && (
+              <button
+                onClick={() => onToggleBlock('showAudienceTitle', true)}
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-neutral-800 text-amber-300 border border-white/10 text-[9px] cursor-pointer"
+              >
+                <Plus className="w-2.5 h-2.5" />
+                <span>+ Título Audiência</span>
+              </button>
+            )}
+
+            {!showDemographics && onToggleBlock && (
+              <button
+                onClick={() => onToggleBlock('showDemographicsGender', true)}
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-neutral-800 text-amber-300 border border-white/10 text-[9px] cursor-pointer"
+              >
+                <Plus className="w-2.5 h-2.5" />
+                <span>+ Demografia</span>
+              </button>
+            )}
+
             {/* If Media Channels was excluded, provide one-click restoration right here! */}
             {!showChannels && onToggleBlock && (
               <button

@@ -82,6 +82,8 @@ export const Slide1Cover: React.FC<SlideProps> = ({
 
   // Visibility and icon flags
   const showIcons = !data.hideAllIcons && data.showIconsSlide1 !== false;
+  const showCoverPhoto = data.showCoverPhoto !== false && Boolean(images.slide1Cover);
+  const showCoverTitle = data.showCoverTitle !== false;
   const showBadge = data.showCoverBadge !== false;
   const showCategory = data.showCoverCategory !== false;
   const showEdition = data.showCoverEdition !== false;
@@ -89,7 +91,15 @@ export const Slide1Cover: React.FC<SlideProps> = ({
   const showDate = data.showCoverMetaDate !== false;
   const showVenue = data.showCoverMetaVenue !== false;
 
-  const hasExcludedBalloons = !showBadge || !showCategory || !showEdition || !showSubtitle || !showDate || !showVenue;
+  const hasExcludedBalloons =
+    !showCoverPhoto ||
+    !showCoverTitle ||
+    !showBadge ||
+    !showCategory ||
+    !showEdition ||
+    !showSubtitle ||
+    !showDate ||
+    !showVenue;
 
   const aspectClass = isMobile ? 'aspect-[9/16]' : isA4 ? 'aspect-[210/297]' : 'aspect-[16/9]';
 
@@ -100,7 +110,9 @@ export const Slide1Cover: React.FC<SlideProps> = ({
       } select-text text-white shadow-2xl transition-all`}
       style={{
         backgroundColor: theme.bgColor,
-        backgroundImage: `linear-gradient(135deg, rgba(9, 9, 11, 0.94) 0%, rgba(15, 15, 20, 0.75) 50%, rgba(9, 9, 11, 0.96) 100%), url('${images.slide1Cover}')`,
+        backgroundImage: showCoverPhoto
+          ? `linear-gradient(135deg, rgba(9, 9, 11, 0.94) 0%, rgba(15, 15, 20, 0.75) 50%, rgba(9, 9, 11, 0.96) 100%), url('${images.slide1Cover}')`
+          : theme.bgGradient,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         fontFamily: theme.fontFamilyBody,
@@ -184,7 +196,11 @@ export const Slide1Cover: React.FC<SlideProps> = ({
             {showBadge && (
               <div className="group/badge relative inline-flex items-center">
                 <span
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border backdrop-blur-md pr-6"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={handleBlur('coverBadge')}
+                  title="Clique para editar este texto"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border backdrop-blur-md pr-6 outline-none hover:border-amber-400 cursor-text"
                   style={{
                     borderColor: `${theme.primaryColor}55`,
                     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -192,7 +208,7 @@ export const Slide1Cover: React.FC<SlideProps> = ({
                   }}
                 >
                   {showIcons && <ShieldCheck className="w-3.5 h-3.5 shrink-0" />}
-                  Proposta Comercial & Media Kit
+                  {data.coverBadge || 'Proposta Comercial & Media Kit'}
                 </span>
                 {onToggleBlock && (
                   <button
@@ -245,6 +261,31 @@ export const Slide1Cover: React.FC<SlideProps> = ({
             <span className="hidden sm:inline">Trocar Capa (PC)</span>
           </button>
 
+          {/* Remove / Restore Cover Photo */}
+          {onToggleBlock && (
+            showCoverPhoto ? (
+              <button
+                type="button"
+                onClick={() => onToggleBlock('showCoverPhoto', false)}
+                title="Apagar foto de capa e deixar apenas o fundo com gradiente limpo"
+                className="no-print flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-red-950/70 hover:bg-red-900 border border-red-500/30 text-xs font-semibold text-red-200 hover:text-white transition-all cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Apagar Foto</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onToggleBlock('showCoverPhoto', true)}
+                title="Restaurar foto de capa"
+                className="no-print flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-500/30 text-xs font-semibold text-emerald-200 hover:text-white transition-all cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">+ Foto Capa</span>
+              </button>
+            )
+          )}
+
           {/* Toggle Icons Button */}
           {onToggleBlock && (
             <button
@@ -291,25 +332,39 @@ export const Slide1Cover: React.FC<SlideProps> = ({
           </div>
         )}
 
-        <h1
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={handleBlur('name')}
-          className={`${
-            isMobile
-              ? 'text-2xl sm:text-3xl leading-tight'
-              : isA4
-              ? 'text-3xl sm:text-4xl lg:text-5xl leading-tight'
-              : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.05]'
-          } font-black uppercase tracking-tight drop-shadow-md break-words`}
-          style={{
-            fontFamily: theme.fontFamilyHead,
-            color: '#FFFFFF',
-            textShadow: '0 4px 20px rgba(0,0,0,0.8)',
-          }}
-        >
-          {data.name}
-        </h1>
+        {showCoverTitle && (
+          <div className="group/title relative flex items-start gap-2">
+            <h1
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={handleBlur('name')}
+              className={`${
+                isMobile
+                  ? 'text-2xl sm:text-3xl leading-tight'
+                  : isA4
+                  ? 'text-3xl sm:text-4xl lg:text-5xl leading-tight'
+                  : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.05]'
+              } font-black uppercase tracking-tight drop-shadow-md break-words`}
+              style={{
+                fontFamily: theme.fontFamilyHead,
+                color: '#FFFFFF',
+                textShadow: '0 4px 20px rgba(0,0,0,0.8)',
+              }}
+            >
+              {data.name}
+            </h1>
+            {onToggleBlock && (
+              <button
+                type="button"
+                onClick={() => onToggleBlock('showCoverTitle', false)}
+                title="Excluir título do evento"
+                className="opacity-0 group-hover/title:opacity-100 p-1 rounded text-neutral-500 hover:text-red-400 transition-opacity cursor-pointer mt-2"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        )}
 
         {showSubtitle && (
           <div className="group/sub relative flex items-start">
@@ -500,6 +555,22 @@ export const Slide1Cover: React.FC<SlideProps> = ({
           <div className="flex items-center gap-1.5 flex-wrap">
             {hasExcludedBalloons && onToggleBlock && (
               <>
+                {!showCoverPhoto && (
+                  <button
+                    onClick={() => onToggleBlock('showCoverPhoto', true)}
+                    className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-2.5 h-2.5" /> <span>+ Foto de Capa</span>
+                  </button>
+                )}
+                {!showCoverTitle && (
+                  <button
+                    onClick={() => onToggleBlock('showCoverTitle', true)}
+                    className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-2.5 h-2.5" /> <span>+ Título Principal</span>
+                  </button>
+                )}
                 {!showBadge && (
                   <button
                     onClick={() => onToggleBlock('showCoverBadge', true)}

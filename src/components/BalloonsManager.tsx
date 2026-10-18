@@ -136,6 +136,8 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
       ...prev,
       hideAllIcons: false,
       // Slide 1
+      showCoverPhoto: true,
+      showCoverTitle: true,
       showCoverBadge: true,
       showCoverCategory: true,
       showCoverEdition: true,
@@ -144,12 +146,18 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
       showCoverMetaVenue: true,
       showIconsSlide1: true,
       // Slide 2
+      showConceptBadge: true,
+      showConceptTitle: true,
       showConceptStory: true,
       showManifesto: true,
       showConceptImage: true,
+      showConceptImageBadge: true,
       showPillars: true,
       showIconsSlide2: true,
       // Slide 3
+      showAudienceBgPhoto: true,
+      showAudienceBadge: true,
+      showAudienceTitle: true,
       showMediaChannels: true,
       showAudienceProfile: true,
       showDemographicsGender: true,
@@ -159,17 +167,25 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
       showMetricPower: true,
       showIconsSlide3: true,
       // Slide 4
+      showStructureBadge: true,
+      showStructureTitle: true,
       showAttractions: true,
       showAttractionPhotos: true,
       attractions: prev.attractions.map((a) => ({ ...a, hideImage: false, hideTag: false })),
       showStructureMetrics: true,
       showIconsSlide4: true,
       // Slide 5
+      showTiersBadge: true,
       showTiersTitle: true,
+      showTiersSubtitle: true,
       showTierBadge: true,
+      tiers: prev.tiers.map((t) => ({ ...t, hideBadge: false })),
       showTierDeliverables: true,
       showIconsSlide5: true,
       // Slide 6
+      showClosingBgPhoto: true,
+      showClosingBadge: true,
+      showClosingTitle: true,
       showClosingCta: true,
       showContactCard: true,
       showContactPhone: true,
@@ -180,7 +196,7 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
       showClosingValidity: true,
       showIconsSlide6: true,
     }));
-    showToast('Todos os balões e ícones foram restaurados em todas as lâminas!');
+    showToast('Todos os elementos, fotos e balões foram restaurados em todas as lâminas!');
   };
 
   return (
@@ -297,6 +313,8 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
 
           <div className="space-y-2 text-xs">
             {[
+              { key: 'showCoverPhoto' as keyof EventData, label: 'Foto de Capa (Deixar Fundo Limpo)' },
+              { key: 'showCoverTitle' as keyof EventData, label: 'Título Principal do Evento' },
               { key: 'showCoverBadge' as keyof EventData, label: 'Emblema: Proposta Comercial & Media Kit' },
               { key: 'showCoverCategory' as keyof EventData, label: 'Balão: Categoria do Evento' },
               { key: 'showCoverEdition' as keyof EventData, label: 'Balão: Edição do Evento' },
@@ -392,9 +410,12 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
 
           <div className="space-y-2 text-xs">
             {[
+              { key: 'showConceptBadge' as keyof EventData, label: 'Balão do Topo: Conceito & Essência' },
+              { key: 'showConceptTitle' as keyof EventData, label: 'Título & Subtítulo do Conceito' },
               { key: 'showConceptStory' as keyof EventData, label: 'Balão: História & Atmosfera Única' },
               { key: 'showManifesto' as keyof EventData, label: 'Balão: Manifesto Oficial da Marca' },
               { key: 'showConceptImage' as keyof EventData, label: 'Balão: Foto de Lifestyle / Conceito' },
+              { key: 'showConceptImageBadge' as keyof EventData, label: 'Balão sobre a Foto do Conceito (Experiência 360°)' },
               { key: 'showPillars' as keyof EventData, label: 'Seção: Pilares da Experiência' },
             ].map((item) => {
               const isVisible = eventData[item.key] !== false;
@@ -546,6 +567,40 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
               {eventData.showIconsSlide3 !== false ? <Eye className="w-2.5 h-2.5 text-amber-400" /> : <EyeOff className="w-2.5 h-2.5 text-neutral-500" />}
               <span>{eventData.showIconsSlide3 !== false ? 'Ícones Ativos' : 'Ícones Ocultos'}</span>
             </button>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            {[
+              { key: 'showAudienceBgPhoto' as keyof EventData, label: 'Foto de Fundo da Audiência' },
+              { key: 'showAudienceBadge' as keyof EventData, label: 'Balão do Topo: Métricas de Audiência' },
+              { key: 'showAudienceTitle' as keyof EventData, label: 'Título de Audiência & Alcance' },
+            ].map((item) => {
+              const isVisible = eventData[item.key] !== false;
+              return (
+                <div
+                  key={item.key}
+                  className={`p-2.5 rounded-lg border flex items-center justify-between transition-all ${
+                    isVisible
+                      ? 'border-neutral-800 bg-neutral-900/60 text-white'
+                      : 'border-dashed border-red-500/30 bg-red-950/10 text-neutral-400'
+                  }`}
+                >
+                  <span className="text-[11px] font-medium">{item.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlock(item.key)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer ${
+                      isVisible
+                        ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40'
+                        : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                    }`}
+                  >
+                    {isVisible ? <Trash2 className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5" />}
+                    <span>{isVisible ? 'Excluir' : 'Readicionar'}</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
 
           {/* Canais de Mídia & Transmissão */}
@@ -771,6 +826,38 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
           </div>
 
           <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-800 bg-neutral-900/60">
+              <span className="text-[11px] font-medium text-white">Balão do Topo: Line-up & Estrutura</span>
+              <button
+                type="button"
+                onClick={() => handleToggleBlock('showStructureBadge')}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer ${
+                  eventData.showStructureBadge !== false
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                }`}
+              >
+                {eventData.showStructureBadge !== false ? <Trash2 className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5" />}
+                <span>{eventData.showStructureBadge !== false ? 'Excluir' : 'Readicionar'}</span>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-800 bg-neutral-900/60">
+              <span className="text-[11px] font-medium text-white">Título & Subtítulo da Estrutura</span>
+              <button
+                type="button"
+                onClick={() => handleToggleBlock('showStructureTitle')}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer ${
+                  eventData.showStructureTitle !== false
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                }`}
+              >
+                {eventData.showStructureTitle !== false ? <Trash2 className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5" />}
+                <span>{eventData.showStructureTitle !== false ? 'Excluir' : 'Readicionar'}</span>
+              </button>
+            </div>
+
             {/* Bloco Geral: Atrações Principais */}
             <div className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-800 bg-neutral-900/60">
               <div>
@@ -990,7 +1077,23 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
 
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between p-2 rounded-lg border border-neutral-800 bg-neutral-900/60">
-              <span className="text-[11px] font-medium text-white">Título & Subtítulo das Cotas</span>
+              <span className="text-[11px] font-medium text-white">Balão do Topo: Investimento & Retorno</span>
+              <button
+                type="button"
+                onClick={() => handleToggleBlock('showTiersBadge')}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer ${
+                  eventData.showTiersBadge !== false
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                }`}
+              >
+                {eventData.showTiersBadge !== false ? <Trash2 className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5" />}
+                <span>{eventData.showTiersBadge !== false ? 'Excluir' : 'Readicionar'}</span>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-2 rounded-lg border border-neutral-800 bg-neutral-900/60">
+              <span className="text-[11px] font-medium text-white">Título das Cotas</span>
               <button
                 type="button"
                 onClick={() => handleToggleBlock('showTiersTitle')}
@@ -1002,6 +1105,22 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
               >
                 {eventData.showTiersTitle !== false ? <Trash2 className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5" />}
                 <span>{eventData.showTiersTitle !== false ? 'Excluir' : 'Readicionar'}</span>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-2 rounded-lg border border-neutral-800 bg-neutral-900/60">
+              <span className="text-[11px] font-medium text-white">Subtítulo das Cotas</span>
+              <button
+                type="button"
+                onClick={() => handleToggleBlock('showTiersSubtitle')}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer ${
+                  eventData.showTiersSubtitle !== false
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                }`}
+              >
+                {eventData.showTiersSubtitle !== false ? <Trash2 className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5" />}
+                <span>{eventData.showTiersSubtitle !== false ? 'Excluir' : 'Readicionar'}</span>
               </button>
             </div>
 
@@ -1118,6 +1237,26 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
                     </div>
                   </div>
 
+                  {/* Input para editar o Nome da Cota */}
+                  <div className="flex items-center gap-1.5 pt-1 border-t border-neutral-800">
+                    <span className="text-[9px] text-neutral-400 shrink-0">Nome da Cota:</span>
+                    <input
+                      type="text"
+                      value={t.name || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setEventData((prev) => ({
+                          ...prev,
+                          tiers: prev.tiers.map((item) =>
+                            item.id === t.id ? { ...item, name: val } : item
+                          ),
+                        }));
+                      }}
+                      placeholder="Ex: COTA MASTER / COTA OURO"
+                      className="flex-1 bg-neutral-950 border border-neutral-700 rounded px-2 py-0.5 text-[10px] text-white focus:border-amber-400 outline-none uppercase font-bold"
+                    />
+                  </div>
+
                   {/* Input para editar o texto da Badge se estiver ativa */}
                   {!t.hideBadge && (
                     <div className="flex items-center gap-1.5 pt-1 border-t border-neutral-800">
@@ -1204,6 +1343,9 @@ export const BalloonsManager: React.FC<BalloonsManagerProps> = ({
 
           <div className="space-y-2 text-xs">
             {[
+              { key: 'showClosingBgPhoto' as keyof EventData, label: 'Foto de Fundo de Encerramento' },
+              { key: 'showClosingBadge' as keyof EventData, label: 'Balão do Topo: Parceria & Próximos Passos' },
+              { key: 'showClosingTitle' as keyof EventData, label: 'Título do Encerramento' },
               { key: 'showClosingCta' as keyof EventData, label: 'Balão: Mensagem de Fechamento & Ativação' },
               { key: 'showContactCard' as keyof EventData, label: 'Balão: Cartão do Executivo / Diretor' },
               { key: 'showContactPhone' as keyof EventData, label: 'Item: Telefone / WhatsApp Comercial' },

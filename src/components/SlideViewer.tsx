@@ -20,9 +20,12 @@ import {
   Plus,
   RotateCcw,
   Check,
+  Save,
+  CheckCircle2,
 } from 'lucide-react';
 import type { EventData, ThemeConfig, SlideImages, LayoutFormat, CustomSlideBlock, ExperiencePillar, AttractionCard, SponsorshipTier } from '../types.ts';
 import { formatConfigs, defaultImages } from '../utils/proposalLogic.ts';
+import { optimizeImageFile } from '../utils/imageOptimizer.ts';
 import { Slide1Cover } from './Slides/Slide1Cover.tsx';
 import { Slide2Concept } from './Slides/Slide2Concept.tsx';
 import { Slide3Audience } from './Slides/Slide3Audience.tsx';
@@ -47,6 +50,9 @@ interface SlideViewerProps {
   onPrint: () => void;
   onDirectPdfExport?: () => void;
   isExportingPdf?: boolean;
+  isSaved?: boolean;
+  lastSavedTime?: string | null;
+  onManualSave?: () => void;
 }
 
 export const SlideViewer: React.FC<SlideViewerProps> = ({
@@ -66,10 +72,14 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
   onPrint,
   onDirectPdfExport,
   isExportingPdf = false,
+  isSaved = true,
+  lastSavedTime = null,
+  onManualSave,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [mediaModalTab, setMediaModalTab] = useState<'logo' | 'slides' | 'sponsors'>('logo');
+  const [saveSuccessToast, setSaveSuccessToast] = useState(false);
 
   const handleUpdateText = (field: keyof EventData, value: string) => {
     setEventData((prev) => ({ ...prev, [field]: value }));
@@ -509,6 +519,42 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
             </button>
           </div>
 
+          {/* Save Status & Action */}
+          <button
+            type="button"
+            onClick={() => {
+              if (onManualSave) onManualSave();
+              setSaveSuccessToast(true);
+              setTimeout(() => setSaveSuccessToast(false), 2500);
+            }}
+            title={isSaved ? 'Todas as alterações estão salvas no navegador. Clique para forçar gravação imediata.' : 'Salvando alterações...'}
+            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all shadow-sm active:scale-95 cursor-pointer ${
+              saveSuccessToast
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
+                : isSaved
+                ? 'bg-neutral-800/90 hover:bg-neutral-800 border-neutral-700 text-neutral-300 hover:text-white'
+                : 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse'
+            }`}
+          >
+            {saveSuccessToast ? (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+                <span className="text-emerald-300 font-bold">Salvo!</span>
+              </>
+            ) : isSaved ? (
+              <>
+                <Save className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">Salvar</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+                <span>Salvando...</span>
+              </>
+            )}
+          </button>
+
           {/* Direct Computer Images / Logo Upload Action */}
           <button
             onClick={() => setShowMediaModal(true)}
@@ -763,16 +809,11 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                const reader = new FileReader();
-                                reader.onload = () => {
-                                  if (typeof reader.result === 'string') {
-                                    handleUpdateImage('logoUrl', reader.result);
-                                  }
-                                };
-                                reader.readAsDataURL(file);
+                                const optimized = await optimizeImageFile(file, 1200, 0.9);
+                                if (optimized) handleUpdateImage('logoUrl', optimized);
                               }
                             }}
                             className="hidden"
@@ -837,16 +878,11 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  const reader = new FileReader();
-                                  reader.onload = () => {
-                                    if (typeof reader.result === 'string') {
-                                      handleUpdateImage(item.key, reader.result);
-                                    }
-                                  };
-                                  reader.readAsDataURL(file);
+                                  const optimized = await optimizeImageFile(file, 1600, 0.85);
+                                  if (optimized) handleUpdateImage(item.key, optimized);
                                 }
                               }}
                               className="hidden"
@@ -887,18 +923,13 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
                           type="file"
                           multiple
                           accept="image/*"
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const files = e.target.files;
                             if (files) {
-                              Array.from(files).forEach((file) => {
-                                const reader = new FileReader();
-                                reader.onload = () => {
-                                  if (typeof reader.result === 'string') {
-                                    handleAddSponsorLogo(reader.result);
-                                  }
-                                };
-                                reader.readAsDataURL(file);
-                              });
+                              for (const file of Array.from(files)) {
+                                const optimized = await optimizeImageFile(file, 800, 0.85);
+                                if (optimized) handleAddSponsorLogo(optimized);
+                              }
                             }
                           }}
                           className="hidden"

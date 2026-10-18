@@ -47,6 +47,9 @@ export interface EventData {
   hideAllIcons?: boolean;
 
   // Lâmina 1: Capa & Identidade
+  coverBadge?: string;
+  showCoverPhoto?: boolean;
+  showCoverTitle?: boolean;
   showCoverBadge?: boolean;
   showCoverCategory?: boolean;
   showCoverEdition?: boolean;
@@ -57,20 +60,27 @@ export interface EventData {
   customBlocksSlide1?: CustomSlideBlock[];
 
   // Lâmina 2: Conceito
+  conceptBadge?: string;
   conceptTitle: string;
   conceptSubtitle: string;
   conceptStory: string;
   manifestoQuote: string;
   manifestoAuthor: string;
   pillars: ExperiencePillar[];
+  conceptImageBadge?: string;
+  conceptImageSubtitle?: string;
+  showConceptBadge?: boolean;
+  showConceptTitle?: boolean;
   showConceptStory?: boolean;
   showManifesto?: boolean;
   showConceptImage?: boolean;
+  showConceptImageBadge?: boolean;
   showPillars?: boolean;
   showIconsSlide2?: boolean;
   customBlocksSlide2?: CustomSlideBlock[];
 
   // Lâmina 3: Público & Métricas
+  audienceBadge?: string;
   audienceCount: string;
   digitalImpressions: string;
   ageBracket: string;
@@ -78,6 +88,9 @@ export interface EventData {
   demographicsGender: { label: string; percentage: number }[];
   audienceProfileDescription: string;
   mediaChannels: string[];
+  showAudienceBgPhoto?: boolean;
+  showAudienceBadge?: boolean;
+  showAudienceTitle?: boolean;
   showMediaChannels?: boolean;
   showAudienceProfile?: boolean;
   showDemographicsGender?: boolean;
@@ -89,10 +102,13 @@ export interface EventData {
   customBlocksSlide3?: CustomSlideBlock[];
 
   // Lâmina 4: Atrações & Estrutura
+  structureBadge?: string;
   structureTitle: string;
   structureSubtitle: string;
   attractions: AttractionCard[];
   structureMetrics: { value: string; label: string }[];
+  showStructureBadge?: boolean;
+  showStructureTitle?: boolean;
   showAttractions?: boolean;
   showAttractionPhotos?: boolean;
   showStructureMetrics?: boolean;
@@ -105,6 +121,7 @@ export interface EventData {
   tiersSubtitle: string;
   tiers: SponsorshipTier[];
   showTiersTitle?: boolean;
+  showTiersSubtitle?: boolean;
   showTiersBadge?: boolean;
   showTierBadge?: boolean;
   showTierDeliverables?: boolean;
@@ -112,6 +129,7 @@ export interface EventData {
   customBlocksSlide5?: CustomSlideBlock[];
 
   // Lâmina 6: Contato
+  closingBadge?: string;
   closingTitle: string;
   closingSubtitle: string;
   closingCta: string;
@@ -122,6 +140,9 @@ export interface EventData {
   contactInstagram: string;
   contactWebsite: string;
   proposalValidityDays: number;
+  showClosingBgPhoto?: boolean;
+  showClosingBadge?: boolean;
+  showClosingTitle?: boolean;
   showClosingCta?: boolean;
   showContactCard?: boolean;
   showContactPhone?: boolean;

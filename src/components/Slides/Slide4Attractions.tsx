@@ -119,6 +119,8 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
   };
 
   const showIcons = !data.hideAllIcons && data.showIconsSlide4 !== false;
+  const showStructureBadge = data.showStructureBadge !== false;
+  const showStructureTitle = data.showStructureTitle !== false;
   const showAttractions = data.showAttractions !== false;
   const showMetrics = data.showStructureMetrics !== false;
   const showAttractionPhotosGlobal = data.showAttractionPhotos !== false;
@@ -126,7 +128,13 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
   const anyPhotoHidden = !showAttractionPhotosGlobal || data.attractions.some((a) => a.hideImage);
   const anyTagHidden = data.attractions.some((a) => a.hideTag);
 
-  const hasExcludedBalloons = !showAttractions || !showMetrics || anyPhotoHidden || anyTagHidden;
+  const hasExcludedBalloons =
+    !showStructureBadge ||
+    !showStructureTitle ||
+    !showAttractions ||
+    !showMetrics ||
+    anyPhotoHidden ||
+    anyTagHidden;
 
   const handleRestoreAllPhotos = () => {
     if (onToggleBlock && !showAttractionPhotosGlobal) {
@@ -185,28 +193,60 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
       {/* Header */}
       <div className="relative z-10 flex items-start justify-between border-b border-white/10 pb-2">
         <div>
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border mb-1 backdrop-blur-md"
-            style={{
-              borderColor: `${theme.primaryColor}55`,
-              backgroundColor: 'rgba(0,0,0,0.4)',
-              color: theme.primaryColor,
-            }}
-          >
-            {showIcons && <Sparkles className="w-3 h-3" />}
-            Line-up & Megaestrutura
-          </span>
-          <h2
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={handleBlur('structureTitle')}
-            className={`${
-              isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
-            } font-black uppercase tracking-tight`}
-            style={{ fontFamily: theme.fontFamilyHead }}
-          >
-            {data.structureTitle}
-          </h2>
+          {showStructureBadge && (
+            <div className="group/sb inline-flex items-center gap-1 mb-1">
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={handleBlur('structureBadge')}
+                title="Clique para editar este texto"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border backdrop-blur-md outline-none hover:border-amber-400 cursor-text"
+                style={{
+                  borderColor: `${theme.primaryColor}55`,
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  color: theme.primaryColor,
+                }}
+              >
+                {showIcons && <Sparkles className="w-3 h-3" />}
+                {data.structureBadge || 'Line-up & Megaestrutura'}
+              </span>
+              {onToggleBlock && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showStructureBadge', false)}
+                  title="Excluir este balão"
+                  className="no-print opacity-0 group-hover/sb:opacity-100 p-0.5 rounded text-neutral-400 hover:text-red-400 cursor-pointer"
+                >
+                  <Trash2 className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          )}
+          {showStructureTitle && (
+            <div className="group/st flex items-center gap-2">
+              <h2
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={handleBlur('structureTitle')}
+                className={`${
+                  isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
+                } font-black uppercase tracking-tight`}
+                style={{ fontFamily: theme.fontFamilyHead }}
+              >
+                {data.structureTitle}
+              </h2>
+              {onToggleBlock && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showStructureTitle', false)}
+                  title="Excluir título da estrutura"
+                  className="no-print opacity-0 group-hover/st:opacity-100 p-0.5 rounded text-neutral-400 hover:text-red-400 cursor-pointer"
+                >
+                  <Trash2 className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          )}
           <p
             contentEditable
             suppressContentEditableWarning
@@ -693,6 +733,22 @@ export const Slide4Attractions: React.FC<SlideProps> = ({
         <div className="flex items-center gap-1.5 flex-wrap">
           {hasExcludedBalloons && (
             <>
+              {!showStructureBadge && onToggleBlock && (
+                <button
+                  onClick={() => onToggleBlock('showStructureBadge', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Balão do Topo</span>
+                </button>
+              )}
+              {!showStructureTitle && onToggleBlock && (
+                <button
+                  onClick={() => onToggleBlock('showStructureTitle', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Título da Estrutura</span>
+                </button>
+              )}
               {!showAttractions && onToggleBlock && (
                 <button
                   onClick={() => onToggleBlock('showAttractions', true)}

@@ -30,6 +30,7 @@ import {
 import type { EventData, ThemeConfig, SlideImages, TypographyPreset, LayoutFormat, CustomSlideBlock } from '../types.ts';
 import { IconPicker } from '../utils/iconMap.tsx';
 import { BalloonsManager } from './BalloonsManager.tsx';
+import { optimizeImageFile } from '../utils/imageOptimizer.ts';
 import {
   defaultThemePresets,
   defaultImages,
@@ -207,21 +208,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
     showToast('Todos os balões e ícones foram restaurados em todas as lâminas!');
   };
 
-  // Helper for image upload to base64 from computer
-  const handleImageUpload = (
+  // Helper for image upload to base64 from computer (optimized and compressed)
+  const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     key: keyof SlideImages
   ) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setImages((prev) => ({ ...prev, [key]: reader.result as string }));
-          showToast(`Imagem carregada do computador com sucesso!`);
-        }
-      };
-      reader.readAsDataURL(file);
+      const optimized = await optimizeImageFile(file, 1600, 0.85);
+      if (optimized) {
+        setImages((prev) => ({ ...prev, [key]: optimized }));
+        showToast(`Imagem otimizada e salva com sucesso!`);
+      }
     }
   };
 
@@ -235,22 +233,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
     showToast(`Imagem restaurada ao padrão!`);
   };
 
-  const handleAddSponsorLogos = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddSponsorLogos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setImages((prev) => ({
-            ...prev,
-            sponsorLogos: [...(prev.sponsorLogos || []), reader.result as string],
-          }));
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-    showToast(`${files.length} logomarca(s) de patrocinador adicionada(s)!`);
+    for (const file of Array.from(files)) {
+      const optimized = await optimizeImageFile(file, 800, 0.85);
+      if (optimized) {
+        setImages((prev) => ({
+          ...prev,
+          sponsorLogos: [...(prev.sponsorLogos || []), optimized],
+        }));
+      }
+    }
+    showToast(`${files.length} logomarca(s) adicionada(s) e salvas!`);
   };
 
   const handleRemoveSponsorLogo = (idx: number) => {

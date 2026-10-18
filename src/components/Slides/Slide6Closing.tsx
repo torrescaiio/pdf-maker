@@ -97,6 +97,9 @@ export const Slide6Closing: React.FC<SlideProps> = ({
   };
 
   const showIcons = !data.hideAllIcons && data.showIconsSlide6 !== false;
+  const showClosingBgPhoto = data.showClosingBgPhoto !== false && Boolean(images.slide6Closing);
+  const showClosingBadge = data.showClosingBadge !== false;
+  const showClosingTitle = data.showClosingTitle !== false;
   const showCta = data.showClosingCta !== false;
   const showContact = data.showContactCard !== false;
   const showPhone = data.showContactPhone !== false;
@@ -106,7 +109,14 @@ export const Slide6Closing: React.FC<SlideProps> = ({
   const showSponsors = data.showClosingSponsors !== false;
   const showValidity = data.showClosingValidity !== false;
 
-  const hasExcludedBalloons = !showCta || !showContact || !showSponsors || !showValidity;
+  const hasExcludedBalloons =
+    !showClosingBgPhoto ||
+    !showClosingBadge ||
+    !showClosingTitle ||
+    !showCta ||
+    !showContact ||
+    !showSponsors ||
+    !showValidity;
 
   const aspectClass = isMobile ? 'aspect-[9/16]' : isA4 ? 'aspect-[210/297]' : 'aspect-[16/9]';
 
@@ -117,7 +127,9 @@ export const Slide6Closing: React.FC<SlideProps> = ({
       } select-text text-white shadow-2xl transition-all`}
       style={{
         backgroundColor: theme.bgColor,
-        backgroundImage: `linear-gradient(135deg, rgba(9, 9, 11, 0.94) 0%, rgba(18, 16, 24, 0.88) 50%, rgba(9, 9, 11, 0.96) 100%), url('${images.slide6Closing}')`,
+        backgroundImage: showClosingBgPhoto
+          ? `linear-gradient(135deg, rgba(9, 9, 11, 0.94) 0%, rgba(18, 16, 24, 0.88) 50%, rgba(9, 9, 11, 0.96) 100%), url('${images.slide6Closing}')`
+          : theme.bgGradient,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         fontFamily: theme.fontFamilyBody,
@@ -149,28 +161,60 @@ export const Slide6Closing: React.FC<SlideProps> = ({
       {/* Header */}
       <div className="relative z-10 flex items-start justify-between border-b border-white/10 pb-2">
         <div>
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border mb-1 backdrop-blur-md"
-            style={{
-              borderColor: `${theme.primaryColor}55`,
-              backgroundColor: 'rgba(0,0,0,0.4)',
-              color: theme.primaryColor,
-            }}
-          >
-            {showIcons && <Handshake className="w-3 h-3" />}
-            Parceria & Próximos Passos
-          </span>
-          <h2
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={handleBlur('closingTitle')}
-            className={`${
-              isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
-            } font-black uppercase tracking-tight max-w-2xl`}
-            style={{ fontFamily: theme.fontFamilyHead }}
-          >
-            {data.closingTitle}
-          </h2>
+          {showClosingBadge && (
+            <div className="group/cb inline-flex items-center gap-1 mb-1">
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={handleBlur('closingBadge')}
+                title="Clique para editar este texto"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border backdrop-blur-md outline-none hover:border-amber-400 cursor-text"
+                style={{
+                  borderColor: `${theme.primaryColor}55`,
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  color: theme.primaryColor,
+                }}
+              >
+                {showIcons && <Handshake className="w-3 h-3" />}
+                {data.closingBadge || 'Parceria & Próximos Passos'}
+              </span>
+              {onToggleBlock && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showClosingBadge', false)}
+                  title="Excluir este balão"
+                  className="no-print opacity-0 group-hover/cb:opacity-100 p-0.5 rounded text-neutral-400 hover:text-red-400 cursor-pointer"
+                >
+                  <Trash2 className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          )}
+          {showClosingTitle && (
+            <div className="group/ct flex items-center gap-2">
+              <h2
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={handleBlur('closingTitle')}
+                className={`${
+                  isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl md:text-3xl'
+                } font-black uppercase tracking-tight max-w-2xl`}
+                style={{ fontFamily: theme.fontFamilyHead }}
+              >
+                {data.closingTitle}
+              </h2>
+              {onToggleBlock && (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showClosingTitle', false)}
+                  title="Excluir título de encerramento"
+                  className="no-print opacity-0 group-hover/ct:opacity-100 p-0.5 rounded text-neutral-400 hover:text-red-400 cursor-pointer"
+                >
+                  <Trash2 className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          )}
           <p
             contentEditable
             suppressContentEditableWarning
@@ -203,6 +247,29 @@ export const Slide6Closing: React.FC<SlideProps> = ({
               <Camera className="w-3 h-3 text-amber-400" />
               <span>Trocar Fundo (PC)</span>
             </button>
+            {onToggleBlock && (
+              showClosingBgPhoto ? (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showClosingBgPhoto', false)}
+                  title="Apagar foto de fundo (deixar gradiente limpo)"
+                  className="no-print flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-950/70 hover:bg-red-900 border border-red-500/30 text-[11px] font-semibold text-red-200 hover:text-white transition-all cursor-pointer"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Apagar Foto</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onToggleBlock('showClosingBgPhoto', true)}
+                  title="Restaurar foto de fundo"
+                  className="no-print flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-500/30 text-[11px] font-semibold text-emerald-200 hover:text-white transition-all cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>+ Foto</span>
+                </button>
+              )
+            )}
           </div>
           <div className="text-right text-[10px] sm:text-[11px] font-mono text-neutral-400">
             <span>{data.name}</span>
@@ -569,6 +636,30 @@ export const Slide6Closing: React.FC<SlideProps> = ({
         <div className="flex items-center gap-1.5 flex-wrap">
           {hasExcludedBalloons && onToggleBlock && (
             <>
+              {!showClosingBadge && (
+                <button
+                  onClick={() => onToggleBlock('showClosingBadge', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Balão do Topo</span>
+                </button>
+              )}
+              {!showClosingTitle && (
+                <button
+                  onClick={() => onToggleBlock('showClosingTitle', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Título Fechamento</span>
+                </button>
+              )}
+              {!showClosingBgPhoto && (
+                <button
+                  onClick={() => onToggleBlock('showClosingBgPhoto', true)}
+                  className="px-2 py-0.5 rounded bg-neutral-800 text-amber-300 border border-white/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-2.5 h-2.5" /> <span>+ Foto de Fundo</span>
+                </button>
+              )}
               {!showCta && (
                 <button
                   onClick={() => onToggleBlock('showClosingCta', true)}
