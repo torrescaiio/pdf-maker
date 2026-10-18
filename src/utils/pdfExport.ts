@@ -22,9 +22,9 @@ export async function exportSlidesToPdf(
   if (totalSlides === 0) return;
 
   // PDF orientation and dimensions in mm based on format
-  // Widescreen (16:9): 297mm x 167.0625mm
-  // Mobile (9:16): 180mm x 320mm
-  // A4 Portrait: 210mm x 297mm
+  // Widescreen (16:9): 297mm x 167.0625mm (exact 16:9 cinematic presentation ratio)
+  // Mobile (9:16): 180mm x 320mm (exact 9:16 smartphone ratio)
+  // A4 Portrait: 210mm x 297mm (exact standard A4 document)
   let orientation: 'landscape' | 'portrait' = 'landscape';
   let pdfWidthMm = 297;
   let pdfHeightMm = 167.0625;
@@ -59,64 +59,108 @@ export async function exportSlidesToPdf(
       onProgress({
         currentSlide: i + 1,
         totalSlides,
-        status: `Processando Lâmina ${i + 1} de ${totalSlides}...`,
+        status: `Renderizando Lâmina ${i + 1} de ${totalSlides}...`,
       });
     }
 
     if (!element) {
-      console.warn(`Element with id ${id} not found.`);
+      console.warn(`Elemento com id ${id} não foi encontrado.`);
       continue;
     }
 
-    // Scroll element into view and allow any fonts or images to render
-    element.scrollIntoView({ behavior: 'instant', block: 'center' });
-    await new Promise((r) => setTimeout(r, 150));
+    // Scroll element into view smoothly to trigger any lazy rendering
+    element.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'center' });
+    await new Promise((r) => setTimeout(r, 120));
 
-    // Capture using html2canvas at scale 2 for crisp vector-like text & high-res images
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#0a0a0a',
-      logging: false,
-      imageTimeout: 15000,
-      ignoreElements: (el) => {
-        return (
-          el.classList.contains('no-print') ||
-          (el.tagName.toLowerCase() === 'button' && (el as HTMLButtonElement).title?.includes('Excluir'))
-        );
-      },
-      onclone: (clonedDoc) => {
-        // In the cloned DOM, make sure all buttons with no-print or edit outlines are removed
-        clonedDoc.querySelectorAll('.no-print').forEach((item) => {
-          (item as HTMLElement).style.display = 'none';
+    let imgData: string | null = null;
+
+    // Primary attempt: High-resolution (scale 2) with safe CORS
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false, // Must be false to allow canvas.toDataURL without SecurityError
+        backgroundColor: '#09090b',
+        logging: false,
+        imageTimeout: 8000,
+        ignoreElements: (el) => {
+          return (
+            el.classList.contains('no-print') ||
+            (el.tagName.toLowerCase() === 'button' &&
+              (el as HTMLButtonElement).title?.includes('Excluir'))
+          );
+        },
+        onclone: (clonedDoc) => {
+          // Hide all editor controls in cloned DOM
+          clonedDoc.querySelectorAll('.no-print').forEach((item) => {
+            (item as HTMLElement).style.display = 'none';
+          });
+          clonedDoc.querySelectorAll('[contenteditable]').forEach((item) => {
+            item.removeAttribute('contenteditable');
+            (item as HTMLElement).style.outline = 'none';
+            (item as HTMLElement).style.boxShadow = 'none';
+            (item as HTMLElement).style.border = 'none';
+          });
+          clonedDoc.querySelectorAll('input').forEach((input) => {
+            (input as HTMLInputElement).style.outline = 'none';
+            (input as HTMLInputElement).style.boxShadow = 'none';
+            (input as HTMLInputElement).style.borderColor = 'transparent';
+          });
+          // Ensure crossOrigin on images
+          clonedDoc.querySelectorAll('img').forEach((img) => {
+            if (img.src && !img.src.startsWith('data:')) {
+              img.crossOrigin = 'anonymous';
+            }
+          });
+        },
+      });
+
+      imgData = canvas.toDataURL('image/jpeg', 0.94);
+    } catch (primaryErr) {
+      console.warn(`Tentativa primária na lâmina ${i + 1} falhou, aplicando renderizador de compatibilidade:`, primaryErr);
+
+      // Secondary attempt: Fallback with scale 1.25 and relaxed constraints
+      try {
+        const fallbackCanvas = await html2canvas(element, {
+          scale: 1.25,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: '#09090b',
+          logging: false,
+          imageTimeout: 5000,
+          onclone: (clonedDoc) => {
+            clonedDoc.querySelectorAll('.no-print').forEach((item) => {
+              (item as HTMLElement).style.display = 'none';
+            });
+            clonedDoc.querySelectorAll('[contenteditable]').forEach((item) => {
+              item.removeAttribute('contenteditable');
+              (item as HTMLElement).style.outline = 'none';
+            });
+          },
         });
-        clonedDoc.querySelectorAll('[contenteditable]').forEach((item) => {
-          item.removeAttribute('contenteditable');
-          (item as HTMLElement).style.outline = 'none';
-          (item as HTMLElement).style.boxShadow = 'none';
-        });
-      },
-    });
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-
-    if (i > 0) {
-      pdf.addPage([pdfWidthMm, pdfHeightMm], orientation);
+        imgData = fallbackCanvas.toDataURL('image/jpeg', 0.9);
+      } catch (fallbackErr) {
+        console.error(`Erro crítico na lâmina ${i + 1}:`, fallbackErr);
+      }
     }
 
-    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm, undefined, 'FAST');
+    if (imgData) {
+      if (i > 0) {
+        pdf.addPage([pdfWidthMm, pdfHeightMm], orientation);
+      }
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm, undefined, 'FAST');
+    }
   }
 
   if (onProgress) {
     onProgress({
       currentSlide: totalSlides,
       totalSlides,
-      status: 'Finalizando e baixando PDF...',
+      status: 'Download do PDF pronto...',
     });
   }
 
-  const safeName = (eventName || 'proposta-patrocinio')
+  const safeName = (eventName || 'proposta-comercial')
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')

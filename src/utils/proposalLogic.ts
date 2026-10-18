@@ -8,9 +8,9 @@ export const formatConfigs: Record<LayoutFormat, FormatConfig> = {
     ratioLabel: '16:9',
     aspectClass: 'aspect-[16/9]',
     previewMaxWidth: 1120,
-    printPageSize: '16in 9in',
-    printWidth: '16in',
-    printHeight: '9in',
+    printPageSize: '297mm 210mm',
+    printWidth: '297mm',
+    printHeight: '210mm',
     description: 'Proporção horizontal clássica para apresentações e projeções.',
   },
   mobile: {
@@ -20,9 +20,9 @@ export const formatConfigs: Record<LayoutFormat, FormatConfig> = {
     ratioLabel: '9:16',
     aspectClass: 'aspect-[9/16]',
     previewMaxWidth: 440,
-    printPageSize: '9in 16in',
-    printWidth: '9in',
-    printHeight: '16in',
+    printPageSize: '210mm 297mm',
+    printWidth: '210mm',
+    printHeight: '297mm',
     description: 'Formato vertical ideal para envio e leitura via WhatsApp / Smartphones.',
   },
   a4Portrait: {
@@ -32,7 +32,7 @@ export const formatConfigs: Record<LayoutFormat, FormatConfig> = {
     ratioLabel: 'A4 (1:1.41)',
     aspectClass: 'aspect-[210/297]',
     previewMaxWidth: 720,
-    printPageSize: 'A4 portrait',
+    printPageSize: '210mm 297mm',
     printWidth: '210mm',
     printHeight: '297mm',
     description: 'Formato executivo padrão para impressão em papel e leitura formal.',
@@ -41,6 +41,12 @@ export const formatConfigs: Record<LayoutFormat, FormatConfig> = {
 
 export function getDynamicPrintCss(format: LayoutFormat): string {
   const cfg = formatConfigs[format] || formatConfigs.widescreen;
+  const isWidescreen = format === 'widescreen';
+  const isMobile = format === 'mobile';
+
+  const innerSlideWidth = isWidescreen ? '297mm' : isMobile ? '167.0625mm' : '210mm';
+  const innerSlideHeight = isWidescreen ? '167.0625mm' : '297mm';
+
   return `@media print {
   @page {
     size: ${cfg.printPageSize};
@@ -50,6 +56,7 @@ export function getDynamicPrintCss(format: LayoutFormat): string {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+    box-sizing: border-box !important;
   }
   html, body {
     margin: 0 !important;
@@ -86,38 +93,61 @@ export function getDynamicPrintCss(format: LayoutFormat): string {
   .print-controls {
     display: none !important;
   }
+  [id^="slide-anchor-"] {
+    width: ${cfg.printWidth} !important;
+    max-width: ${cfg.printWidth} !important;
+    height: ${cfg.printHeight} !important;
+    max-height: ${cfg.printHeight} !important;
+    min-height: ${cfg.printHeight} !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    background: #09090b !important;
+  }
+  [id^="slide-anchor-"]:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
   .slide-wrapper-print {
     width: ${cfg.printWidth} !important;
     max-width: ${cfg.printWidth} !important;
     min-width: ${cfg.printWidth} !important;
+    height: ${cfg.printHeight} !important;
+    max-height: ${cfg.printHeight} !important;
+    min-height: ${cfg.printHeight} !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    background: transparent !important;
-    display: block !important;
+    background: #09090b !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     overflow: hidden !important;
-    page-break-after: always !important;
-    break-after: page !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
   .slide-container-print {
-    width: ${cfg.printWidth} !important;
-    height: ${cfg.printHeight} !important;
-    min-width: ${cfg.printWidth} !important;
-    min-height: ${cfg.printHeight} !important;
-    max-width: ${cfg.printWidth} !important;
-    max-height: ${cfg.printHeight} !important;
+    width: ${innerSlideWidth} !important;
+    height: ${innerSlideHeight} !important;
+    min-width: ${innerSlideWidth} !important;
+    min-height: ${innerSlideHeight} !important;
+    max-width: ${innerSlideWidth} !important;
+    max-height: ${innerSlideHeight} !important;
     aspect-ratio: auto !important;
-    page-break-after: always !important;
-    break-after: page !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     overflow: hidden !important;
     position: relative !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
@@ -771,48 +801,58 @@ export function generateSingleFileHtml(
       padding: 0;
     }
     .slide {
-      width: ${isMobile ? '430px' : isA4 ? '680px' : '100vw'};
-      height: ${isMobile ? '764px' : isA4 ? '962px' : '56.25vw'};
-      max-height: ${isMobile || isA4 ? 'none' : '100vh'};
-      max-width: ${isMobile || isA4 ? 'none' : '177.78vh'};
-      margin: 0 auto 30px auto;
+      width: ${isMobile ? '420px' : isA4 ? '720px' : '960px'};
+      max-width: 95vw;
+      aspect-ratio: ${isMobile ? '9/16' : isA4 ? '210/297' : '16/9'};
+      margin: 32px auto;
       position: relative;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: ${isMobile ? '28px' : isA4 ? '36px' : '3.5vw'};
+      padding: ${isMobile ? '24px' : isA4 ? '32px' : '36px'};
       background-size: cover;
       background-position: center;
-      page-break-after: always;
-      break-after: page;
-      border-radius: 12px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-sizing: border-box;
     }
     @media print {
       @page {
         size: ${cfg.printPageSize};
         margin: 0 !important;
       }
-      body {
-        background: #000 !important;
+      *, *::before, *::after {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         color-adjust: exact !important;
+        box-sizing: border-box !important;
+      }
+      html, body {
+        background: #09090b !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: ${cfg.printWidth} !important;
       }
       .slide {
-        width: ${cfg.printWidth} !important;
-        height: ${cfg.printHeight} !important;
-        min-width: ${cfg.printWidth} !important;
-        min-height: ${cfg.printHeight} !important;
-        max-width: ${cfg.printWidth} !important;
-        max-height: ${cfg.printHeight} !important;
-        margin: 0 !important;
-        padding: ${isMobile ? '24px' : isA4 ? '32px' : '3.5vw'} !important;
+        width: ${format === 'widescreen' ? '297mm' : format === 'mobile' ? '167mm' : '210mm'} !important;
+        height: ${format === 'widescreen' ? '167.0625mm' : '297mm'} !important;
+        max-width: ${format === 'widescreen' ? '297mm' : format === 'mobile' ? '167mm' : '210mm'} !important;
+        max-height: ${format === 'widescreen' ? '167.0625mm' : '297mm'} !important;
+        margin: ${format === 'widescreen' ? '21.46mm auto' : '0 auto'} !important;
+        padding: 24px !important;
         border-radius: 0 !important;
+        border: none !important;
         box-shadow: none !important;
         page-break-after: always !important;
         break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      .slide:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
       }
       .no-print { display: none !important; }
     }
